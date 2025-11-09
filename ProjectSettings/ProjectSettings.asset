@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 28
-  productGUID: e7b457dbf6d67534788e3bf7ded41b55
+  productGUID: e19316493c78e324dbeef1a389267126
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: Poc3
+  productName: PoC3
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -601,14 +601,14 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: Poc3
+  metroPackageName: PoC3
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: Poc3
+  metroApplicationDescription: PoC3
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -677,12 +677,12 @@ PlayerSettings:
   qnxGraphicConfPath: 
   apiCompatibilityLevel: 6
   captureStartupLogs: {}
-  activeInputHandler: 0
+  activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: d07e6add-0a19-4d01-95e9-8a5fbbba00fd
+  cloudProjectId: 3d6f495d-b72b-4efc-8d02-a8ffdd10a668
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Poc3
+  projectName: PoC3
   organizationId: gurpaper
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
