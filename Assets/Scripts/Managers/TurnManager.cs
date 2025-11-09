@@ -35,13 +35,20 @@ namespace PoC3.ManagerSystem
 
         private StateMachine _stateMachine;
         private int _currentBallsInHand;
-        private int _accumulatedDamageThisTurn;
+        
+        // Bonus stats accumulated this turn
+        private int _accumulatedAttack;
+        private int _accumulatedDefense;
+        private int _accumulatedHealth;
 
         public event Action OnTurnStart;
         public event Action OnTurnEnd;
         public event Action<int> OnBallsInHandChanged;
-        public event Action<int> OnDamageAccumulated;
         public event Action<Ball> OnBallLaunched;
+        
+        public event Action<int> OnAttackAccumulated;
+        public event Action<int> OnDefenseAccumulated;
+        public event Action<int> OnHealthAccumulated;
 
         private void Awake()
         {
@@ -87,8 +94,12 @@ namespace PoC3.ManagerSystem
         public void PrepareNewTurn()
         {
             Debug.Log("[TurnManager] Preparing new turn.");
-            _accumulatedDamageThisTurn = 0;
-            OnDamageAccumulated?.Invoke(_accumulatedDamageThisTurn);
+            _accumulatedAttack = 0;
+            _accumulatedDefense = 0;
+            _accumulatedHealth = 0;
+            OnAttackAccumulated?.Invoke(_accumulatedAttack);
+            OnDefenseAccumulated?.Invoke(_accumulatedDefense);
+            OnHealthAccumulated?.Invoke(_accumulatedHealth);
 
             // If it's the very first turn, initialize with initial balls. Otherwise, add balls per turn.
             if (_currentBallsInHand == 0) 
@@ -145,30 +156,58 @@ namespace PoC3.ManagerSystem
         }
 
         /// <summary>
-        /// Calculates damage, applies it to the enemy, and ends the player's turn.
+        /// Calculates the current bonus stats from all launched balls on the board and updates the UI.
+        /// </summary>
+        public void CalculateCurrentBonuses()
+        {
+            _accumulatedAttack = 0;
+            _accumulatedDefense = 0;
+            _accumulatedHealth = 0;
+
+            foreach (Ball ball in GameBoard.ActiveBalls)
+            {
+                if (!ball.IsLaunched) continue; // Don't count the un-launched ball
+
+                Tile tileUnderBall = FindTileUnderBall(ball);
+                if (tileUnderBall != null && tileUnderBall.CurrentTileEffect != null)
+                {
+                    int effectValue = tileUnderBall.ActivateTileEffect(ball.Level);
+                    switch (tileUnderBall.CurrentTileEffect.Type)
+                    {
+                        case EffectType.Attack:
+                            _accumulatedAttack += effectValue;
+                            break;
+                        case EffectType.Defense:
+                            _accumulatedDefense += effectValue;
+                            break;
+                        case EffectType.Health:
+                            _accumulatedHealth += effectValue;
+                            break;
+                    }
+                }
+            }
+            
+            OnAttackAccumulated?.Invoke(_accumulatedAttack);
+            OnDefenseAccumulated?.Invoke(_accumulatedDefense);
+            OnHealthAccumulated?.Invoke(_accumulatedHealth);
+            Debug.Log($"[TurnManager] Bonuses calculated: ATK+{_accumulatedAttack}, DEF+{_accumulatedDefense}, HEAL+{_accumulatedHealth}");
+        }
+
+        /// <summary>
+        /// Applies calculated bonuses, deals damage to the enemy, and ends the player's turn.
         /// </summary>
         public void AttackEnemyAndEndTurn(Enemy enemy)
         {
             Debug.Log("[TurnManager] Attacking enemy and ending turn.");
             
-            // 1. Calculate damage from tiles
-            _accumulatedDamageThisTurn = 0; // Reset before recalculating
-            foreach (Ball ball in GameBoard.ActiveBalls)
-            {
-                if (!ball.IsLaunched) continue; // Don't count the un-launched ball
-
-                Tile tileUnderBall = FindTileUnderBall(ball); 
-                if (tileUnderBall != null && tileUnderBall.CurrentTileEffect != null)
-                {
-                    _accumulatedDamageThisTurn += tileUnderBall.ActivateTileEffect(ball.Level);
-                }
-            }
-            OnDamageAccumulated?.Invoke(_accumulatedDamageThisTurn);
-            
-            // 2. Apply total damage to enemy
-            int totalDamage = _baseAttackDamage + _accumulatedDamageThisTurn;
-            Debug.Log($"[TurnManager] Applying total damage: {_baseAttackDamage} (base) + {_accumulatedDamageThisTurn} (tiles) = {totalDamage}");
+            // 1. Apply total damage to enemy (using pre-calculated bonuses)
+            int totalDamage = _player.CurrentAttackDamage + _accumulatedAttack;
+            Debug.Log($"[TurnManager] Applying total damage: {_player.CurrentAttackDamage} (base) + {_accumulatedAttack} (bonus) = {totalDamage}");
             enemy.TakeDamage(totalDamage);
+
+            // 2. Apply bonus stats to player
+            _player.AddDefense(_accumulatedDefense);
+            _player.AddHealth(_accumulatedHealth);
 
             // 3. Clean up the board
             CleanupBoard();

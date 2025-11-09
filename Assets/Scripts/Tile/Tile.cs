@@ -16,6 +16,19 @@ namespace PoC3.TileSystem
         [SerializeField]
         private SpriteRenderer _spriteRenderer;
 
+        private void Start()
+        {
+            if (_spriteRenderer == null)
+            {
+                _spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            if (_spriteRenderer != null && _tileEffect != null)
+            {
+                _spriteRenderer.color = _tileEffect.TileColor;
+            }
+        }
+
         /// <summary>
         /// Applies the tile's effect using the provided ball's level.
         /// </summary>
@@ -38,15 +51,7 @@ namespace PoC3.TileSystem
         {
             if (_spriteRenderer != null)
             {
-                _spriteRenderer.color = isHighlighted ? Color.yellow : Color.white;
-            }
-        }
-
-        private void OnValidate()
-        {
-            if (_spriteRenderer == null)
-            {
-                _spriteRenderer = GetComponent<SpriteRenderer>();
+                _spriteRenderer.color = isHighlighted ? Color.yellow : _tileEffect.TileColor; // Revert to original tile color
             }
         }
     }

@@ -42,6 +42,7 @@ namespace PoC3.Core
                 {
                     Debug.Log("[PlayerTurnState] All balls have stopped. Preparing next ball if available.");
                     _isWaitingForBallsToStop = false;
+                    _turnManager.CalculateCurrentBonuses(); // Calculate bonuses immediately when balls stop
                     _turnManager.PrepareNextBall();
                 }
             }

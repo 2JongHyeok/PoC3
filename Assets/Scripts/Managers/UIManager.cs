@@ -1,7 +1,6 @@
 using UnityEngine;
 using TMPro;
 using PoC3.PlayerSystem;
-using PoC3.EnemySystem;
 using PoC3.ManagerSystem;
 
 namespace PoC3.UISystem
@@ -16,19 +15,12 @@ namespace PoC3.UISystem
         [Header("Player Stats UI")]
         [SerializeField] private TextMeshProUGUI _playerHealthText;
         [SerializeField] private TextMeshProUGUI _playerDefenseText;
-        // TODO: Add Player Attack Text when player attack stat is implemented
+        [SerializeField] private TextMeshProUGUI _playerAttackText;
 
         [Header("Turn Bonus UI")]
-        [SerializeField] private TextMeshProUGUI _turnBonusDamageText;
-        // TODO: Add Turn Bonus Health/Defense Text when those tile effects are implemented
-
-        [Header("Enemy Stats UI")]
-        [SerializeField] private GameObject _enemyStatsPanel;
-        [SerializeField] private TextMeshProUGUI _enemyHealthText;
-        [SerializeField] private TextMeshProUGUI _enemyDefenseText;
-        [SerializeField] private TextMeshProUGUI _enemyAttackText;
-
-        private Enemy _currentTargetedEnemy;
+        [SerializeField] private TextMeshProUGUI _turnBonusAttackText;
+        [SerializeField] private TextMeshProUGUI _turnBonusDefenseText;
+        [SerializeField] private TextMeshProUGUI _turnBonusHealthText;
 
         private void Awake()
         {
@@ -49,22 +41,23 @@ namespace PoC3.UISystem
             {
                 Player.Instance.OnHealthChanged += UpdatePlayerHealth;
                 Player.Instance.OnDefenseChanged += UpdatePlayerDefense;
+                Player.Instance.OnAttackDamageChanged += UpdatePlayerAttack;
                 // Initial UI update
                 UpdatePlayerHealth(Player.Instance.CurrentHealth, Player.Instance.MaxHealth);
                 UpdatePlayerDefense(Player.Instance.CurrentDefense);
+                UpdatePlayerAttack(Player.Instance.CurrentAttackDamage);
             }
 
             // Subscribe to TurnManager events
             if (TurnManager.Instance != null)
             {
-                TurnManager.Instance.OnDamageAccumulated += UpdateTurnBonusDamage;
+                TurnManager.Instance.OnAttackAccumulated += UpdateTurnBonusAttack;
+                TurnManager.Instance.OnDefenseAccumulated += UpdateTurnBonusDefense;
+                TurnManager.Instance.OnHealthAccumulated += UpdateTurnBonusHealth;
                 // Initial UI update
-                UpdateTurnBonusDamage(0);
-            }
-
-            if (_enemyStatsPanel != null)
-            {
-                _enemyStatsPanel.SetActive(false);
+                UpdateTurnBonusAttack(0);
+                UpdateTurnBonusDefense(0);
+                UpdateTurnBonusHealth(0);
             }
         }
 
@@ -75,14 +68,13 @@ namespace PoC3.UISystem
             {
                 Player.Instance.OnHealthChanged -= UpdatePlayerHealth;
                 Player.Instance.OnDefenseChanged -= UpdatePlayerDefense;
+                Player.Instance.OnAttackDamageChanged -= UpdatePlayerAttack;
             }
             if (TurnManager.Instance != null)
             {
-                TurnManager.Instance.OnDamageAccumulated -= UpdateTurnBonusDamage;
-            }
-            if (_currentTargetedEnemy != null)
-            {
-                UnsubscribeFromEnemyEvents(_currentTargetedEnemy);
+                TurnManager.Instance.OnAttackAccumulated -= UpdateTurnBonusAttack;
+                TurnManager.Instance.OnDefenseAccumulated -= UpdateTurnBonusDefense;
+                TurnManager.Instance.OnHealthAccumulated -= UpdateTurnBonusHealth;
             }
         }
 
@@ -99,83 +91,29 @@ namespace PoC3.UISystem
                 _playerDefenseText.text = $"Player DEF: {current}";
         }
 
+        private void UpdatePlayerAttack(int amount)
+        {
+            if (_playerAttackText != null)
+                _playerAttackText.text = $"Player ATK: {amount}";
+        }
+
         // --- Turn Bonus UI Methods ---
-        private void UpdateTurnBonusDamage(int amount)
+        private void UpdateTurnBonusAttack(int amount)
         {
-            if (_turnBonusDamageText != null)
-                _turnBonusDamageText.text = $"Bonus DMG: +{amount}";
+            if (_turnBonusAttackText != null)
+                _turnBonusAttackText.text = $"Bonus ATK: +{amount}";
         }
 
-        // --- Enemy UI Methods ---
-        public void ShowEnemyStats(Enemy enemy)
+        private void UpdateTurnBonusDefense(int amount)
         {
-            if (enemy == null)
-            {
-                HideEnemyStats();
-                return;
-            }
-
-            if (_currentTargetedEnemy != enemy)
-            {
-                if (_currentTargetedEnemy != null)
-                {
-                    UnsubscribeFromEnemyEvents(_currentTargetedEnemy);
-                }
-                _currentTargetedEnemy = enemy;
-                SubscribeToEnemyEvents(_currentTargetedEnemy);
-            }
-            
-            if (_enemyStatsPanel != null) _enemyStatsPanel.SetActive(true);
-            UpdateEnemyHealth(enemy.CurrentHealth, enemy.MaxHealth);
-            UpdateEnemyDefense(enemy.CurrentDefense);
-            UpdateEnemyAttack(enemy.BaseAttackDamage);
+            if (_turnBonusDefenseText != null)
+                _turnBonusDefenseText.text = $"Bonus DEF: +{amount}";
         }
 
-        public void HideEnemyStats()
+        private void UpdateTurnBonusHealth(int amount)
         {
-            if (_enemyStatsPanel != null) _enemyStatsPanel.SetActive(false);
-            if (_currentTargetedEnemy != null)
-            {
-                UnsubscribeFromEnemyEvents(_currentTargetedEnemy);
-                _currentTargetedEnemy = null;
-            }
-        }
-
-        private void SubscribeToEnemyEvents(Enemy enemy)
-        {
-            enemy.OnHealthChanged += UpdateEnemyHealth;
-            enemy.OnDefenseChanged += UpdateEnemyDefense;
-            enemy.OnDied += OnTargetEnemyDied;
-        }
-
-        private void UnsubscribeFromEnemyEvents(Enemy enemy)
-        {
-            enemy.OnHealthChanged -= UpdateEnemyHealth;
-            enemy.OnDefenseChanged -= UpdateEnemyDefense;
-            enemy.OnDied -= OnTargetEnemyDied;
-        }
-
-        private void UpdateEnemyHealth(int current, int max)
-        {
-            if (_enemyHealthText != null)
-                _enemyHealthText.text = $"Enemy HP: {current} / {max}";
-        }
-
-        private void UpdateEnemyDefense(int current)
-        {
-            if (_enemyDefenseText != null)
-                _enemyDefenseText.text = $"Enemy DEF: {current}";
-        }
-
-        private void UpdateEnemyAttack(int amount)
-        {
-            if (_enemyAttackText != null)
-                _enemyAttackText.text = $"Enemy ATK: {amount}";
-        }
-
-        private void OnTargetEnemyDied()
-        {
-            HideEnemyStats();
+            if (_turnBonusHealthText != null)
+                _turnBonusHealthText.text = $"Bonus HEAL: +{amount}";
         }
     }
 }

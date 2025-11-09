@@ -10,7 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b7225b5d7c506d49bb32a81725a1ca2, type: 3}
-  m_Name: DefaultTileEffect
+  m_Name: AttackTiile
   m_EditorClassIdentifier: 
+  Type: 0
+  TileColor: {r: 0, g: 0.1551485, b: 1, a: 1}
   _effectName: AttackTile
   _baseEffectValue: 1

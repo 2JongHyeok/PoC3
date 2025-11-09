@@ -16,14 +16,18 @@ namespace PoC3.PlayerSystem
         private int _maxHealth = 200;
         [SerializeField]
         private int _currentDefense = 0;
+        [SerializeField]
+        private int _currentAttackDamage = 10;
 
         public event Action<int, int> OnHealthChanged; // currentHealth, maxHealth
         public event Action<int> OnDefenseChanged;
+        public event Action<int> OnAttackDamageChanged;
         public event Action OnDied;
 
         public int CurrentHealth => _currentHealth;
         public int MaxHealth => _maxHealth;
         public int CurrentDefense => _currentDefense;
+        public int CurrentAttackDamage => _currentAttackDamage;
 
         private void Awake()
         {
@@ -41,6 +45,7 @@ namespace PoC3.PlayerSystem
         {
             OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
             OnDefenseChanged?.Invoke(_currentDefense);
+            OnAttackDamageChanged?.Invoke(_currentAttackDamage);
         }
 
         /// <summary>
@@ -70,15 +75,36 @@ namespace PoC3.PlayerSystem
         }
 
         /// <summary>
+        /// Adds health points to the player.
+        /// </summary>
+        public void AddHealth(int amount)
+        {
+            if (amount <= 0) return;
+            _currentHealth = Mathf.Min(_currentHealth + amount, _maxHealth);
+            Debug.Log($"[Player] Healed {amount}. Total health: {_currentHealth}");
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        }
+
+        /// <summary>
         /// Adds defense points to the player.
         /// </summary>
-        /// <param name="amount">The amount of defense to add.</param>
         public void AddDefense(int amount)
         {
             if (amount <= 0) return;
             _currentDefense += amount;
             Debug.Log($"[Player] Gained {amount} defense. Total defense: {_currentDefense}");
             OnDefenseChanged?.Invoke(_currentDefense);
+        }
+
+        /// <summary>
+        /// Adds attack damage to the player.
+        /// </summary>
+        public void AddAttackDamage(int amount)
+        {
+            if (amount <= 0) return;
+            _currentAttackDamage += amount;
+            Debug.Log($"[Player] Gained {amount} attack damage. Total attack: {_currentAttackDamage}");
+            OnAttackDamageChanged?.Invoke(_currentAttackDamage);
         }
 
         private void Die()

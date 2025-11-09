@@ -2,6 +2,13 @@ using UnityEngine;
 
 namespace PoC3.TileSystem
 {
+    public enum EffectType
+    {
+        Attack,
+        Defense,
+        Health
+    }
+
     /// <summary>
     /// Base class for all tile effects.
     /// Inherit from this to create specific tile effects (e.g., DefenseTileEffect, HealthTileEffect).
@@ -10,6 +17,11 @@ namespace PoC3.TileSystem
     [CreateAssetMenu(fileName = "NewTileEffect", menuName = "PoC3/Tile Effect")]
     public class TileEffect : ScriptableObject
     {
+        [Header("Effect Properties")]
+        public EffectType Type;
+        public Color TileColor = Color.white;
+
+        [Header("Effect Values")]
         [SerializeField]
         private string _effectName = "New Effect";
         public string EffectName => _effectName;
@@ -28,7 +40,7 @@ namespace PoC3.TileSystem
         {
             // As per REQUIRE_GATHER.md, ball level is added to the base effect value.
             int totalEffect = _baseEffectValue + ballLevel;
-            Debug.Log($"[TileEffect] Applying {EffectName} with base value {_baseEffectValue} and ball level {ballLevel}. Total effect: {totalEffect}");
+            Debug.Log($"[TileEffect] Applying {EffectName} ({Type}) with base value {_baseEffectValue} and ball level {ballLevel}. Total effect: {totalEffect}");
             return totalEffect;
         }
     }
