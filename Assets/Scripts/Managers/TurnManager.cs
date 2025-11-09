@@ -168,21 +168,24 @@ namespace PoC3.ManagerSystem
             {
                 if (!ball.IsLaunched) continue; // Don't count the un-launched ball
 
-                Tile tileUnderBall = FindTileUnderBall(ball);
-                if (tileUnderBall != null && tileUnderBall.CurrentTileEffect != null)
+                List<Tile> tilesUnderBall = FindTilesUnderBall(ball);
+                foreach (Tile tile in tilesUnderBall)
                 {
-                    int effectValue = tileUnderBall.ActivateTileEffect(ball.Level);
-                    switch (tileUnderBall.CurrentTileEffect.Type)
+                    if (tile.CurrentTileEffect != null)
                     {
-                        case EffectType.Attack:
-                            _accumulatedAttack += effectValue;
-                            break;
-                        case EffectType.Defense:
-                            _accumulatedDefense += effectValue;
-                            break;
-                        case EffectType.Health:
-                            _accumulatedHealth += effectValue;
-                            break;
+                        int effectValue = tile.ActivateTileEffect(ball.Level);
+                        switch (tile.CurrentTileEffect.Type)
+                        {
+                            case EffectType.Attack:
+                                _accumulatedAttack += effectValue;
+                                break;
+                            case EffectType.Defense:
+                                _accumulatedDefense += effectValue;
+                                break;
+                            case EffectType.Health:
+                                _accumulatedHealth += effectValue;
+                                break;
+                        }
                     }
                 }
             }
@@ -231,14 +234,20 @@ namespace PoC3.ManagerSystem
             }
         }
 
-        private Tile FindTileUnderBall(Ball ball)
+        private List<Tile> FindTilesUnderBall(Ball ball)
         {
-            RaycastHit2D hit = Physics2D.Raycast(ball.transform.position, Vector2.zero, 0f, LayerMask.GetMask("Tile"));
-            if (hit.collider != null)
+            List<Tile> tiles = new List<Tile>();
+            Collider2D[] hits = Physics2D.OverlapCircleAll(ball.transform.position, ball.Radius, LayerMask.GetMask("Tile"));
+            
+            foreach (Collider2D hit in hits)
             {
-                return hit.collider.GetComponent<Tile>();
+                Tile tile = hit.GetComponent<Tile>();
+                if (tile != null)
+                {
+                    tiles.Add(tile);
+                }
             }
-            return null;
+            return tiles;
         }
     }
 }

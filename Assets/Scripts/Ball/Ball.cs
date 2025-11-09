@@ -7,6 +7,7 @@ namespace PoC3.BallSystem
     /// Represents a ball in the game. Manages its level and collision logic.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(CircleCollider2D))]
     public class Ball : MonoBehaviour
     {
         [SerializeField]
@@ -16,6 +17,7 @@ namespace PoC3.BallSystem
         public bool IsLaunched { get; private set; } = false;
 
         private Rigidbody2D _rb;
+        private CircleCollider2D _circleCollider;
 
         /// <summary>
         /// Event fired when the ball's level changes.
@@ -33,6 +35,25 @@ namespace PoC3.BallSystem
             if (_rb == null)
             {
                 Debug.LogError("[Ball] Rigidbody2D component not found on Ball GameObject.");
+            }
+
+            _circleCollider = GetComponent<CircleCollider2D>();
+            if (_circleCollider == null)
+            {
+                Debug.LogError("[Ball] CircleCollider2D component not found on Ball GameObject.");
+            }
+        }
+
+        public float Radius
+        {
+            get
+            {
+                if (_circleCollider == null)
+                {
+                    Debug.LogError("[Ball] CircleCollider2D is null, cannot get radius.");
+                    return 0f;
+                }
+                return _circleCollider.radius;
             }
         }
 
