@@ -4,6 +4,7 @@ namespace PoC3.TileSystem
 {
     public enum EffectType
     {
+        None,
         Attack,
         Defense,
         Health
