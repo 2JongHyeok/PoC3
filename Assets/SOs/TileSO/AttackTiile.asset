@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: AttackTiile
   m_EditorClassIdentifier: 
   Type: 0
-  TileColor: {r: 0, g: 0.1551485, b: 1, a: 1}
+  TileColor: {r: 0.48776254, g: 0.9150943, b: 0.49949324, a: 0.2784314}
   _effectName: AttackTile
   _baseEffectValue: 1

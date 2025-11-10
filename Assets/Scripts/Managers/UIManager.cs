@@ -22,6 +22,9 @@ namespace PoC3.UISystem
         [SerializeField] private TextMeshProUGUI _turnBonusDefenseText;
         [SerializeField] private TextMeshProUGUI _turnBonusHealthText;
 
+        [Header("Turn Info UI")]
+        [SerializeField] private TextMeshProUGUI _ballsInHandText;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -54,6 +57,7 @@ namespace PoC3.UISystem
                 TurnManager.Instance.OnAttackAccumulated += UpdateTurnBonusAttack;
                 TurnManager.Instance.OnDefenseAccumulated += UpdateTurnBonusDefense;
                 TurnManager.Instance.OnHealthAccumulated += UpdateTurnBonusHealth;
+                TurnManager.Instance.OnBallsInHandChanged += UpdateBallsInHand;
                 // Initial UI update
                 UpdateTurnBonusAttack(0);
                 UpdateTurnBonusDefense(0);
@@ -75,6 +79,7 @@ namespace PoC3.UISystem
                 TurnManager.Instance.OnAttackAccumulated -= UpdateTurnBonusAttack;
                 TurnManager.Instance.OnDefenseAccumulated -= UpdateTurnBonusDefense;
                 TurnManager.Instance.OnHealthAccumulated -= UpdateTurnBonusHealth;
+                TurnManager.Instance.OnBallsInHandChanged -= UpdateBallsInHand;
             }
         }
 
@@ -114,6 +119,13 @@ namespace PoC3.UISystem
         {
             if (_turnBonusHealthText != null)
                 _turnBonusHealthText.text = $"Bonus HEAL: +{amount}";
+        }
+
+        // --- Turn Info UI Methods ---
+        private void UpdateBallsInHand(int amount)
+        {
+            if (_ballsInHandText != null)
+                _ballsInHandText.text = $"Balls Left: {amount}";
         }
     }
 }

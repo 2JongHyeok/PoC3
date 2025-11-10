@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: HealTile
   m_EditorClassIdentifier: 
   Type: 2
-  TileColor: {r: 1, g: 0, b: 0.13348532, a: 1}
+  TileColor: {r: 0.9056604, g: 0.34603062, b: 0.42064786, a: 0.45490196}
   _effectName: HealTile
   _baseEffectValue: 1

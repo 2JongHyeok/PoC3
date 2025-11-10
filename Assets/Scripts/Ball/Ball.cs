@@ -8,6 +8,7 @@ namespace PoC3.BallSystem
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(CircleCollider2D))]
+    [RequireComponent(typeof(SpriteRenderer))]
     public class Ball : MonoBehaviour
     {
         [SerializeField]
@@ -18,6 +19,7 @@ namespace PoC3.BallSystem
 
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
+        private SpriteRenderer _spriteRenderer;
 
         /// <summary>
         /// Event fired when the ball's level changes.
@@ -42,6 +44,14 @@ namespace PoC3.BallSystem
             {
                 Debug.LogError("[Ball] CircleCollider2D component not found on Ball GameObject.");
             }
+
+            _spriteRenderer = GetComponent<SpriteRenderer>();
+            if (_spriteRenderer == null)
+            {
+                Debug.LogError("[Ball] SpriteRenderer component not found on Ball GameObject.");
+            }
+
+            UpdateColorBasedOnLevel(); // Set initial color
         }
 
         public float Radius
@@ -63,6 +73,7 @@ namespace PoC3.BallSystem
         public void IncreaseLevel()
         {
             _level++;
+            UpdateColorBasedOnLevel(); // Update color when level changes
             OnLevelChanged?.Invoke(_level);
             Debug.Log($"[Ball] Ball {name} level increased to {_level}");
         }
@@ -125,6 +136,26 @@ namespace PoC3.BallSystem
         public bool IsStopped(float threshold = 0.1f)
         {
             return _rb != null && _rb.linearVelocity.magnitude < threshold;
+        }
+
+        private void UpdateColorBasedOnLevel()
+        {
+            if (_spriteRenderer == null) return;
+
+            Color targetColor;
+            switch (_level)
+            {
+                case 0: targetColor = Color.black; break;
+                case 1: targetColor = Color.red; break;
+                case 2: targetColor = new Color(1f, 0.5f, 0f); /* Orange */ break;
+                case 3: targetColor = Color.yellow; break;
+                case 4: targetColor = Color.green; break;
+                case 5: targetColor = Color.blue; break;
+                case 6: targetColor = new Color(0.29f, 0f, 0.51f); /* Indigo */ break;
+                case 7: targetColor = new Color(0.5f, 0f, 0.5f); /* Purple */ break;
+                default: targetColor = new Color(1f, 0.75f, 0.8f); /* Pink */ break; // Level 8 and above
+            }
+            _spriteRenderer.color = targetColor;
         }
     }
 }
