@@ -35,6 +35,7 @@ namespace PoC3.ManagerSystem
 
         private StateMachine _stateMachine;
         private int _currentBallsInHand;
+        private bool _isFirstTurn = true;
         
         // Bonus stats accumulated this turn
         private int _accumulatedAttack;
@@ -102,9 +103,10 @@ namespace PoC3.ManagerSystem
             OnHealthAccumulated?.Invoke(_accumulatedHealth);
 
             // If it's the very first turn, initialize with initial balls. Otherwise, add balls per turn.
-            if (_currentBallsInHand == 0) 
+            if (_isFirstTurn)
             {
                 _currentBallsInHand = _initialBalls;
+                _isFirstTurn = false;
             }
             else
             {
