@@ -11,6 +11,7 @@ namespace PoC3.BallSystem
     {
         [Header("Aiming Parameters")]
         [SerializeField] private float _maxLaunchForce = 10f;
+        [SerializeField] private float _minDragDistance = 0.5f;
 
         [Header("Trajectory Indicator")]
         [SerializeField] private Transform _trajectoryIndicator; // Assign a simple Square sprite transform
@@ -25,6 +26,7 @@ namespace PoC3.BallSystem
         private Ball _targetBall;
         private Vector3 _startDragPosition;
         private bool _isAiming = false;
+        private Color _originalBallColor;
 
         private void Awake()
         {
@@ -75,6 +77,13 @@ namespace PoC3.BallSystem
                     _targetBall = ball;
                     _startDragPosition = mousePosition;
                     if(_trajectoryIndicator) _trajectoryIndicator.gameObject.SetActive(true);
+                    
+                    // Store original color
+                    SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
+                    if (ballSprite != null)
+                    {
+                        _originalBallColor = ballSprite.color;
+                    }
                     Debug.Log($"[BallLauncher] Started aiming with ball: {_targetBall.name}");
                 }
             }
@@ -98,6 +107,20 @@ namespace PoC3.BallSystem
             _trajectoryIndicator.rotation = Quaternion.Euler(0, 0, angle);
 
             _trajectoryIndicator.localScale = new Vector3(power, _trajectoryIndicator.localScale.y, _trajectoryIndicator.localScale.z);
+
+            // Visual feedback for launch readiness
+            SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
+            if (ballSprite != null)
+            {
+                if (dragDistance > _minDragDistance)
+                {
+                    ballSprite.color = Color.white;
+                }
+                else
+                {
+                    ballSprite.color = _originalBallColor;
+                }
+            }
         }
 
         private void LaunchBall()
@@ -105,16 +128,31 @@ namespace PoC3.BallSystem
             Vector3 currentDragPosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
             Vector3 dragVector = currentDragPosition - _startDragPosition;
             
-            Vector2 launchDirection = -dragVector.normalized;
             float dragDistance = dragVector.magnitude;
-            float power = Mathf.Clamp(dragDistance, 0, _maxLaunchForce);
-            
-            Vector2 launchForce = launchDirection * power;
 
-            Debug.Log($"[BallLauncher] Launching ball with force: {launchForce}");
-            OnLaunch?.Invoke(_targetBall, launchForce);
+            if (dragDistance > _minDragDistance)
+            {
+                Vector2 launchDirection = -dragVector.normalized;
+                float power = Mathf.Clamp(dragDistance, 0, _maxLaunchForce);
+                Vector2 launchForce = launchDirection * power;
 
-            // Reset aiming state
+                Debug.Log($"[BallLauncher] Launching ball with force: {launchForce}");
+                OnLaunch?.Invoke(_targetBall, launchForce);
+            }
+            else
+            {
+                Debug.Log("[BallLauncher] Drag distance too short. Launch cancelled.");
+            }
+
+            // Reset ball color and aiming state
+            if (_targetBall != null)
+            {
+                SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
+                if (ballSprite != null)
+                {
+                    ballSprite.color = _originalBallColor;
+                }
+            }
             _isAiming = false;
             _targetBall = null;
             if(_trajectoryIndicator) _trajectoryIndicator.gameObject.SetActive(false);
