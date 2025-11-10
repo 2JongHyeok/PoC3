@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b7225b5d7c506d49bb32a81725a1ca2, type: 3}
   m_Name: HealTile
   m_EditorClassIdentifier: 
-  Type: 2
+  Type: 3
   TileColor: {r: 0.9056604, g: 0.34603062, b: 0.42064786, a: 0.45490196}
   _effectName: HealTile
   _baseEffectValue: 1

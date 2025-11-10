@@ -123,6 +123,7 @@ namespace PoC3.BallSystem
             if (_rb != null)
             {
                 IsLaunched = true;
+                gameObject.layer = LayerMask.NameToLayer("Ball"); // Change layer back to "Ball"
                 _rb.AddForce(force, ForceMode2D.Impulse);
                 Debug.Log($"[Ball] Ball {name} launched with force: {force}");
             }

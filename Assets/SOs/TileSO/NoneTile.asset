@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: NoneTile
   m_EditorClassIdentifier: 
   Type: 0
-  TileColor: {r: 1, g: 1, b: 1, a: 1}
-  _effectName: New Effect
-  _baseEffectValue: 1
+  TileColor: {r: 0.4245283, g: 0.4245283, b: 0.4245283, a: 0.41960785}
+  _effectName: NoneTile
+  _baseEffectValue: 0

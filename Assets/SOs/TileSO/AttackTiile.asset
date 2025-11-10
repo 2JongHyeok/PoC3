@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b7225b5d7c506d49bb32a81725a1ca2, type: 3}
   m_Name: AttackTiile
   m_EditorClassIdentifier: 
-  Type: 0
+  Type: 1
   TileColor: {r: 0.48776254, g: 0.9150943, b: 0.49949324, a: 0.2784314}
   _effectName: AttackTile
   _baseEffectValue: 1

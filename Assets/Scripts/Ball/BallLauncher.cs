@@ -11,7 +11,6 @@ namespace PoC3.BallSystem
     {
         [Header("Aiming Parameters")]
         [SerializeField] private float _maxLaunchForce = 10f;
-        [SerializeField] private LayerMask _ballLayer; // Set this to the layer your balls are on
 
         [Header("Trajectory Indicator")]
         [SerializeField] private Transform _trajectoryIndicator; // Assign a simple Square sprite transform
@@ -63,7 +62,8 @@ namespace PoC3.BallSystem
         private void TryStartAiming()
         {
             Vector3 mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(new Vector2(mousePosition.x, mousePosition.y), Vector2.zero, 0f, _ballLayer);
+            int layerMask = LayerMask.GetMask("ReadyBall");
+            RaycastHit2D hit = Physics2D.Raycast(new Vector2(mousePosition.x, mousePosition.y), Vector2.zero, 0f, layerMask);
 
             if (hit.collider != null)
             {

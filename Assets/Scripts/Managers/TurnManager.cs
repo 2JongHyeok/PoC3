@@ -137,6 +137,7 @@ namespace PoC3.ManagerSystem
             
             Debug.Log("[TurnManager] Preparing next ball.");
             Ball newBall = Instantiate(_ballPrefab, _ballSpawnPoint.position, Quaternion.identity);
+            newBall.gameObject.layer = LayerMask.NameToLayer("ReadyBall"); // Set layer to ReadyBall
             GameBoard.AddBall(newBall);
         }
 
