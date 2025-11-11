@@ -14,8 +14,9 @@ namespace PoC3.Core
         private readonly StateMachine _stateMachine;
         private readonly Camera _mainCamera;
 
-        // We can add sub-states here later (e.g., Aiming, WaitingForBalls)
         private bool _isWaitingForBallsToStop = false;
+        private float _stopTimer = 0f;
+        private const float TIME_TO_CONSIDER_STOPPED = 0.5f;
 
         public PlayerTurnState(TurnManager turnManager, StateMachine stateMachine)
         {
@@ -30,6 +31,7 @@ namespace PoC3.Core
             _turnManager.PrepareNewTurn();
             _turnManager.PrepareNextBall(); // Automatically prepare one ball for the player
             _isWaitingForBallsToStop = false;
+            _stopTimer = 0f;
             _turnManager.OnBallLaunched += HandleBallLaunched;
         }
 
@@ -37,13 +39,26 @@ namespace PoC3.Core
         {
             if (_isWaitingForBallsToStop)
             {
-                // If we are waiting for balls to stop, check their status
+                // Check if balls are stopped
                 if (_turnManager.GameBoard.AreAllBallsStopped())
                 {
-                    Debug.Log("[PlayerTurnState] All balls have stopped. Preparing next ball if available.");
-                    _isWaitingForBallsToStop = false;
-                    _turnManager.CalculateCurrentBonuses(); // Calculate bonuses immediately when balls stop
-                    _turnManager.PrepareNextBall();
+                    // If they are, start a timer
+                    _stopTimer += Time.deltaTime;
+                    if (_stopTimer >= TIME_TO_CONSIDER_STOPPED)
+                    {
+                        // If they have been stopped for long enough, proceed
+                        Debug.Log("[PlayerTurnState] All balls have fully stopped.");
+                        _isWaitingForBallsToStop = false;
+                        _stopTimer = 0f;
+                        
+                        _turnManager.CalculateCurrentBonuses();
+                        _turnManager.PrepareNextBall();
+                    }
+                }
+                else
+                {
+                    // If any ball moves, reset the timer
+                    _stopTimer = 0f;
                 }
             }
             else

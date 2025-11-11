@@ -20,6 +20,7 @@ namespace PoC3.BallSystem
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
         private SpriteRenderer _spriteRenderer;
+        private Vector2 _lastVelocity;
 
         /// <summary>
         /// Event fired when the ball's level changes.
@@ -52,6 +53,12 @@ namespace PoC3.BallSystem
             }
 
             UpdateColorBasedOnLevel(); // Set initial color
+        }
+
+        private void FixedUpdate()
+        {
+            // Store the velocity of the previous frame to ensure accurate reflection calculation
+            _lastVelocity = _rb.linearVelocity;
         }
 
         public float Radius
@@ -92,13 +99,8 @@ namespace PoC3.BallSystem
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            // Check for collision with walls (assuming walls have a specific tag or layer)
-            // For now, let's assume any collision increases level as per requirement.
-            // REQUIRE_GATHER.md: "공이 벽에 닿을 때마다 해당 공의 레벨이 1 증가합니다."
-            // REQUIRE_GATHER.md: "공이 다른 공을 맞출 경우, 맞은 공과 맞춘 공 모두 레벨이 1씩 증가하며, 물리 충돌이 발생해야 합니다."
-
-            // If colliding with another ball
-            if (collision.gameObject.CompareTag("Ball")) // Assuming balls have "Ball" tag
+            // If colliding with another ball, use default physics but increase levels
+            if (collision.gameObject.CompareTag("Ball"))
             {
                 Ball otherBall = collision.gameObject.GetComponent<Ball>();
                 if (otherBall != null)
@@ -108,13 +110,18 @@ namespace PoC3.BallSystem
                     Debug.Log($"[Ball] Ball {name} collided with another ball {otherBall.name}. Both levels increased.");
                 }
             }
-            // If colliding with a wall (assuming walls have "Wall" tag)
-            else if (collision.gameObject.CompareTag("Wall")) // Assuming walls have "Wall" tag
+            // If colliding with a wall, manually calculate reflection for perfect bounce
+            else if (collision.gameObject.CompareTag("Wall"))
             {
                 IncreaseLevel();
-                Debug.Log($"[Ball] Ball {name} collided with a wall. Level increased.");
+                
+                // Manually calculate and apply reflection
+                Vector2 inNormal = collision.contacts[0].normal;
+                Vector2 reflectedVelocity = Vector2.Reflect(_lastVelocity, inNormal);
+                _rb.linearVelocity = reflectedVelocity;
+
+                Debug.Log($"[Ball] Ball {name} collided with a wall. Reflected velocity.");
             }
-            // You might add more specific collision handling here for other objects
         }
 
         // You might add methods for launching the ball, checking if it has stopped, etc.
