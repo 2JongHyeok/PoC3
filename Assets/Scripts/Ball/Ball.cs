@@ -30,7 +30,10 @@ namespace PoC3.BallSystem
 
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
-        private SpriteRenderer _spriteRenderer;
+        public SpriteRenderer levelRenderer;
+        public SpriteRenderer healthRenderer;
+
+        private Material _healthMaterial;
         private Vector2 _lastVelocity;
         private readonly HashSet<Tile> _tilesInContact = new HashSet<Tile>();
 
@@ -63,11 +66,13 @@ namespace PoC3.BallSystem
                 Debug.LogError("[Ball] CircleCollider2D component not found on Ball GameObject.");
             }
 
-            _spriteRenderer = GetComponent<SpriteRenderer>();
-            if (_spriteRenderer == null)
+            healthRenderer = GetComponent<SpriteRenderer>();
+            if (healthRenderer == null)
             {
                 Debug.LogError("[Ball] SpriteRenderer component not found on Ball GameObject.");
             }
+
+            _healthMaterial = healthRenderer.material;
 
             _curHealth = maxHealth;
             UpdateColorBasedOnLevel(); // Set initial color
@@ -204,7 +209,7 @@ namespace PoC3.BallSystem
 
         private void UpdateColorBasedOnLevel()
         {
-            if (_spriteRenderer == null) return;
+            if (levelRenderer == null) return;
 
             Color targetColor;
             switch (_level)
@@ -219,12 +224,14 @@ namespace PoC3.BallSystem
                 case 7: targetColor = new Color(0.5f, 0f, 0.5f); /* Purple */ break;
                 default: targetColor = new Color(1f, 0.75f, 0.8f); /* Pink */ break; // Level 8 and above
             }
-            _spriteRenderer.color = targetColor;
+            levelRenderer.color = targetColor;
         }
         
         private void TakeDamage(int amount)
         {
             _curHealth -= amount;
+            float fillAmount = (float)_curHealth / maxHealth;
+            _healthMaterial.SetFloat("_FillAmount", fillAmount);
 
             if (_curHealth <= 0)
                 Destroy(gameObject);
