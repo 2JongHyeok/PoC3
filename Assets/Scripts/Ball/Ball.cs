@@ -1,6 +1,12 @@
 using UnityEngine;
 using System;
 
+public enum BallType
+{
+    Player,
+    Enemy
+}
+
 namespace PoC3.BallSystem
 {
     /// <summary>
@@ -14,6 +20,9 @@ namespace PoC3.BallSystem
         [SerializeField]
         private int _level = 1; // Initial level of the ball
         public int Level => _level;
+        public BallType ballType;
+        public int maxHealth = 4;
+        [SerializeField] private int _curHealth;
 
         public bool IsLaunched { get; private set; } = false;
 
@@ -52,6 +61,7 @@ namespace PoC3.BallSystem
                 Debug.LogError("[Ball] SpriteRenderer component not found on Ball GameObject.");
             }
 
+            _curHealth = maxHealth;
             UpdateColorBasedOnLevel(); // Set initial color
         }
 
@@ -105,9 +115,18 @@ namespace PoC3.BallSystem
                 Ball otherBall = collision.gameObject.GetComponent<Ball>();
                 if (otherBall != null)
                 {
-                    IncreaseLevel(); // This ball's level increases
-                    otherBall.IncreaseLevel(); // The other ball's level increases
-                    Debug.Log($"[Ball] Ball {name} collided with another ball {otherBall.name}. Both levels increased.");
+                    // Same player ball
+                    if (ballType == otherBall.ballType)
+                    {
+                        IncreaseLevel(); // This ball's level increases
+                        otherBall.IncreaseLevel(); // The other ball's level increases
+                        Debug.Log($"[Ball] Ball {name} collided with another ball {otherBall.name}. Both levels increased.");
+                    }
+                    // Other player ball
+                    else
+                    {
+                        TakeDamage(1);
+                    }
                 }
             }
             // If colliding with a wall, manually calculate reflection for perfect bounce
@@ -164,6 +183,14 @@ namespace PoC3.BallSystem
                 default: targetColor = new Color(1f, 0.75f, 0.8f); /* Pink */ break; // Level 8 and above
             }
             _spriteRenderer.color = targetColor;
+        }
+        
+        private void TakeDamage(int amount)
+        {
+            _curHealth -= amount;
+
+            if (_curHealth <= 0)
+                Destroy(gameObject);
         }
     }
 }
