@@ -171,26 +171,28 @@ namespace PoC3.ManagerSystem
             {
                 if (!ball.IsLaunched) continue; // Don't count the un-launched ball
 
-                List<Tile> tilesUnderBall = FindTilesUnderBall(ball);
-                foreach (Tile tile in tilesUnderBall)
+                foreach (Tile tile in ball.TilesInContact)
                 {
-                    if (tile.CurrentTileEffect != null)
+                    if (tile == null || tile.CurrentTileEffect == null)
                     {
-                                            int effectValue = tile.ActivateTileEffect(ball.Level);
-                                            switch (tile.CurrentTileEffect.Type)
-                                            {
-                                                case EffectType.None:
-                                                    break;
-                                                case EffectType.Attack:
-                                                    _accumulatedAttack += effectValue;
-                                                    break;
-                                                case EffectType.Defense:
-                                                    _accumulatedDefense += effectValue;
-                                                    break;
-                                                case EffectType.Health:
-                                                    _accumulatedHealth += effectValue;
-                                                    break;
-                                            }                    }
+                        continue;
+                    }
+
+                    int effectValue = tile.ActivateTileEffect(ball.Level);
+                    switch (tile.CurrentTileEffect.Type)
+                    {
+                        case EffectType.None:
+                            break;
+                        case EffectType.Attack:
+                            _accumulatedAttack += effectValue;
+                            break;
+                        case EffectType.Defense:
+                            _accumulatedDefense += effectValue;
+                            break;
+                        case EffectType.Health:
+                            _accumulatedHealth += effectValue;
+                            break;
+                    }
                 }
             }
             
@@ -236,22 +238,6 @@ namespace PoC3.ManagerSystem
             {
                 ball.UseBall();
             }
-        }
-
-        private List<Tile> FindTilesUnderBall(Ball ball)
-        {
-            List<Tile> tiles = new List<Tile>();
-            Collider2D[] hits = Physics2D.OverlapCircleAll(ball.transform.position, ball.Radius, LayerMask.GetMask("Tile"));
-            
-            foreach (Collider2D hit in hits)
-            {
-                Tile tile = hit.GetComponent<Tile>();
-                if (tile != null)
-                {
-                    tiles.Add(tile);
-                }
-            }
-            return tiles;
         }
     }
 }

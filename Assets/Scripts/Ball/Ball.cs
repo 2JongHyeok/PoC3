@@ -1,5 +1,7 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
+using PoC3.TileSystem;
 
 public enum BallType
 {
@@ -30,6 +32,7 @@ namespace PoC3.BallSystem
         private CircleCollider2D _circleCollider;
         private SpriteRenderer _spriteRenderer;
         private Vector2 _lastVelocity;
+        private readonly HashSet<Tile> _tilesInContact = new HashSet<Tile>();
 
         /// <summary>
         /// Event fired when the ball's level changes.
@@ -40,6 +43,11 @@ namespace PoC3.BallSystem
         /// Event fired when the ball is used (e.g., after settling on tiles).
         /// </summary>
         public event Action<Ball> OnBallUsed;
+
+        /// <summary>
+        /// Tiles the ball is currently overlapping via trigger.
+        /// </summary>
+        public IReadOnlyCollection<Tile> TilesInContact => _tilesInContact;
 
         private void Awake()
         {
@@ -103,6 +111,7 @@ namespace PoC3.BallSystem
         {
             OnBallUsed?.Invoke(this);
             Debug.Log($"[Ball] Ball {name} used.");
+            _tilesInContact.Clear();
             // In a real game, you might disable the GameObject or return it to a pool here.
             gameObject.SetActive(false);
         }
@@ -140,6 +149,34 @@ namespace PoC3.BallSystem
                 _rb.linearVelocity = reflectedVelocity;
 
                 Debug.Log($"[Ball] Ball {name} collided with a wall. Reflected velocity.");
+            }
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            Tile tile = other.GetComponent<Tile>();
+            if (tile == null)
+            {
+                return;
+            }
+
+            if (_tilesInContact.Add(tile))
+            {
+                Debug.Log($"[Ball] {name} entered tile {tile.name}.");
+            }
+        }
+
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            Tile tile = other.GetComponent<Tile>();
+            if (tile == null)
+            {
+                return;
+            }
+
+            if (_tilesInContact.Remove(tile))
+            {
+                Debug.Log($"[Ball] {name} exited tile {tile.name}.");
             }
         }
 
