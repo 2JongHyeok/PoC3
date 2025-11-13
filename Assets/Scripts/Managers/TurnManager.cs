@@ -241,28 +241,16 @@ namespace PoC3.ManagerSystem
         private List<Tile> FindTilesUnderBall(Ball ball)
         {
             List<Tile> tiles = new List<Tile>();
-            int tileLayerMask = LayerMask.GetMask("Tile");
-
-            Debug.Log($"[TurnManager] Checking for tiles under Ball: {ball.name} at position: {ball.transform.position}, radius: {ball.Radius}");
-
-            Collider2D[] hits = Physics2D.OverlapCircleAll(ball.transform.position, ball.Radius, tileLayerMask);
-            Debug.Log($"[TurnManager] OverlapCircleAll hit {hits.Length} colliders for ball {ball.name}.");
+            Collider2D[] hits = Physics2D.OverlapCircleAll(ball.transform.position, ball.Radius, LayerMask.GetMask("Tile"));
             
             foreach (Collider2D hit in hits)
             {
-                Debug.Log($"[TurnManager] Hit collider: {hit.name}, Layer: {LayerMask.LayerToName(hit.gameObject.layer)}");
                 Tile tile = hit.GetComponent<Tile>();
                 if (tile != null)
                 {
                     tiles.Add(tile);
-                    Debug.Log($"[TurnManager] Found Tile: {tile.name} under ball {ball.name}.");
-                }
-                else
-                {
-                    Debug.LogWarning($"[TurnManager] Collider {hit.name} on layer 'Tile' does not have a Tile component.");
                 }
             }
-            Debug.Log($"[TurnManager] FindTilesUnderBall found {tiles.Count} actual Tile components for ball {ball.name}.");
             return tiles;
         }
     }
