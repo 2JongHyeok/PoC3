@@ -77,14 +77,13 @@ namespace PoC3.BallSystem
             }
 
             _healthMaterial = healthRenderer.material;
-
-            _curHealth = maxHealth;
             UpdateColorBasedOnLevel(); // Set initial color
         }
 
         private void Start()
         {
             SetShineEffect(ballType == BallType.Player);
+            SetPlayer(ballType == BallType.Player);
         }
 
         private void FixedUpdate()
@@ -258,6 +257,13 @@ namespace PoC3.BallSystem
         {
             float toggle = (isOn ? 1.0f : 0.0f);
             _healthMaterial.SetFloat("_PulseToggle", toggle);
+        }
+
+        public void SetPlayer(bool isPlayer)
+        {
+            levelRenderer.color = isPlayer ? Color.black : Color.blue;
+            maxHealth = isPlayer ? 10 : 3;
+            _curHealth = maxHealth;
         }
     }
 }
