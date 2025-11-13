@@ -142,7 +142,7 @@ namespace PoC3.BallSystem
                     if (ballType == otherBall.ballType)
                     {
                         IncreaseLevel(); // This ball's level increases
-                        otherBall.IncreaseLevel(); // The other ball's level increases
+                        // otherBall.IncreaseLevel(); // The other ball's level increases
                         Debug.Log($"[Ball] Ball {name} collided with another ball {otherBall.name}. Both levels increased.");
                     }
                     // Other player ball
