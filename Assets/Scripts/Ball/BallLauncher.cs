@@ -12,6 +12,7 @@ namespace PoC3.BallSystem
         [Header("Aiming Parameters")]
         [SerializeField] private float _maxLaunchForce = 10f;
         [SerializeField] private float _minDragDistance = 0.5f;
+        [SerializeField] private float _maxPowerDragDistance = 10f;
 
         [Header("Trajectory Indicator")]
         [SerializeField] private Transform _trajectoryIndicator; // Assign a simple Square sprite transform
@@ -99,14 +100,15 @@ namespace PoC3.BallSystem
             // Launch direction is opposite to drag direction
             Vector2 launchDirection = -dragVector.normalized;
             float dragDistance = dragVector.magnitude;
-            float power = Mathf.Clamp(dragDistance, 0, _maxLaunchForce);
+            float power = CalculatePowerFromDrag(dragDistance);
 
             _trajectoryIndicator.position = _targetBall.transform.position;
             
             float angle = Mathf.Atan2(launchDirection.y, launchDirection.x) * Mathf.Rad2Deg;
             _trajectoryIndicator.rotation = Quaternion.Euler(0, 0, angle);
 
-            _trajectoryIndicator.localScale = new Vector3(power, _trajectoryIndicator.localScale.y, _trajectoryIndicator.localScale.z);
+            float visualLength = Mathf.Clamp(dragDistance, 0f, _maxPowerDragDistance);
+            _trajectoryIndicator.localScale = new Vector3(visualLength, _trajectoryIndicator.localScale.y, _trajectoryIndicator.localScale.z);
 
             // Visual feedback for launch readiness
             SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
@@ -133,7 +135,7 @@ namespace PoC3.BallSystem
             if (dragDistance > _minDragDistance)
             {
                 Vector2 launchDirection = -dragVector.normalized;
-                float power = Mathf.Clamp(dragDistance, 0, _maxLaunchForce);
+                float power = CalculatePowerFromDrag(dragDistance);
                 Vector2 launchForce = launchDirection * power;
 
                 Debug.Log($"[BallLauncher] Launching ball with force: {launchForce}");
@@ -156,6 +158,17 @@ namespace PoC3.BallSystem
             _isAiming = false;
             _targetBall = null;
             if(_trajectoryIndicator) _trajectoryIndicator.gameObject.SetActive(false);
+        }
+
+        private float CalculatePowerFromDrag(float dragDistance)
+        {
+            if (_maxPowerDragDistance <= 0f)
+            {
+                return 0f;
+            }
+
+            float charge = Mathf.Clamp01(dragDistance / _maxPowerDragDistance);
+            return charge * _maxLaunchForce;
         }
     }
 }
