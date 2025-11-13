@@ -402,6 +402,7 @@ namespace PoC3.ManagerSystem
             StopChargeTimer();
             ForceStopAllBalls();
             CalculateBoardBuffsForBothSides();
+            CleanupBoard();
             OnBoardTimerEnded?.Invoke();
         }
 

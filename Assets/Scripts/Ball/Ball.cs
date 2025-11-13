@@ -126,8 +126,7 @@ namespace PoC3.BallSystem
             Debug.Log($"[Ball] Ball {name} used.");
             _tilesInContact.Clear();
             OwnerEnemy = null;
-            // In a real game, you might disable the GameObject or return it to a pool here.
-            gameObject.SetActive(false);
+            Destroy(gameObject);
         }
 
         private void OnCollisionEnter2D(Collision2D collision)
