@@ -96,6 +96,12 @@ namespace PoC3.PlayerSystem
             OnDefenseChanged?.Invoke(_currentDefense);
         }
 
+        public void ResetDefense()
+        {
+            _currentDefense = 0;
+            OnDefenseChanged?.Invoke(_currentDefense);
+        }
+
         /// <summary>
         /// Adds attack damage to the player.
         /// </summary>

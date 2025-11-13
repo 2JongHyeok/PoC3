@@ -1962,7 +1962,8 @@ MonoBehaviour:
   _ballPrefab: {fileID: 7603352979789581476, guid: 1e01c609bc9225a49af9da8108661667, type: 3}
   _spawnPoint: {fileID: 814311021}
   _chargeSlider: {fileID: 1678482231}
-  _chargeDuration: 7
+  _ownerEnemy: {fileID: 0}
+  _chargeDuration: 10
   _launchForce: 20
   _gizmoColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!1 &470334821
@@ -4048,6 +4049,7 @@ MonoBehaviour:
   _maxHealth: 10
   _currentDefense: 0
   _baseAttackDamage: 1
+  _currentAttackDamage: 5
   _highlightIndicator: {fileID: 1251548946}
 --- !u!61 &884671326
 BoxCollider2D:
@@ -4181,7 +4183,8 @@ MonoBehaviour:
   _ballPrefab: {fileID: 7603352979789581476, guid: 1e01c609bc9225a49af9da8108661667, type: 3}
   _spawnPoint: {fileID: 362586227}
   _chargeSlider: {fileID: 688954115}
-  _chargeDuration: 7
+  _ownerEnemy: {fileID: 0}
+  _chargeDuration: 13
   _launchForce: 20
   _gizmoColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!1 &953414236
@@ -4528,6 +4531,7 @@ MonoBehaviour:
   _maxHealth: 10
   _currentDefense: 0
   _baseAttackDamage: 1
+  _currentAttackDamage: 5
   _highlightIndicator: {fileID: 1748200}
 --- !u!61 &1030418411
 BoxCollider2D:
@@ -4661,7 +4665,8 @@ MonoBehaviour:
   _ballPrefab: {fileID: 7603352979789581476, guid: 1e01c609bc9225a49af9da8108661667, type: 3}
   _spawnPoint: {fileID: 1072338796}
   _chargeSlider: {fileID: 1388814738}
-  _chargeDuration: 7
+  _ownerEnemy: {fileID: 0}
+  _chargeDuration: 15
   _launchForce: 20
   _gizmoColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!1 &1036071068

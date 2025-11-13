@@ -123,10 +123,13 @@ namespace PoC3.ManagerSystem
             OnDefenseAccumulated?.Invoke(_accumulatedDefense);
             OnHealthAccumulated?.Invoke(_accumulatedHealth);
 
+            _player.ResetDefense();
+            ResetEnemyDefenseStats();
+            ResetEnemyAttackStats();
+
+            _boardTimer?.ResetTimer();
             OnTurnStart?.Invoke();
             OnBallsInHandChanged?.Invoke(_currentBallsInHand);
-            ResetEnemyAttackStats();
-            _boardTimer?.ResetTimer();
             EnsureBallChargeRoutine();
         }
 
@@ -362,6 +365,14 @@ namespace PoC3.ManagerSystem
             foreach (Enemy enemy in _enemyManager.GetAllActiveEnemies())
             {
                 enemy?.ResetAttackDamage();
+            }
+        }
+
+        private void ResetEnemyDefenseStats()
+        {
+            foreach (Enemy enemy in _enemyManager.GetAllActiveEnemies())
+            {
+                enemy?.ResetDefense();
             }
         }
 

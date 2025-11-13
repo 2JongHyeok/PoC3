@@ -41,6 +41,12 @@ namespace PoC3.EnemySystem
             OnDefenseChanged?.Invoke(_currentDefense);
         }
 
+        public void ResetDefense()
+        {
+            _currentDefense = 0;
+            OnDefenseChanged?.Invoke(_currentDefense);
+        }
+
         public void AddHealth(int amount)
         {
             if (amount <= 0) return;
