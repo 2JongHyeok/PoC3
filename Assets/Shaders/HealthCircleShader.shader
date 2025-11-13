@@ -2,11 +2,22 @@ Shader "Custom/HealthCircleShader"
 {
     Properties
     {
+        [Header(Health)]
         [MainColor] _HealthColor("Health Color", Color) = (0, 1, 0, 1)
         _DamageColor("Damage Color", Color) = (1, 0, 0, 1)
-        _BorderColor("Border Color", Color) = (0, 0, 0, 1) // 테두리 색상
         _FillAmount("Fill Amount", Range(0.0, 1.0)) = 1.0
-        _BorderThickness("Border Thickness", Range(0.0, 0.1)) = 0.02 // 테두리 두께
+
+        [Header(Border)]
+        _BorderColor("Border Color", Color) = (0, 0, 0, 1)
+        _BorderThickness("Border Thickness", Range(0.0, 0.1)) = 0.02
+
+        [Header(Pulsating Effect)] // 헤더 변경
+        _PulseColor("Pulse Color", Color) = (1, 1, 0.5, 1) // 발광 색상
+        _PulseSpeed("Pulse Speed", Range(0.0, 10.0)) = 2.0 // 발광 속도
+        _PulseIntensity("Pulse Intensity", Range(0.0, 5.0)) = 1.0 // 발광 강도
+        _PulseToggle("Pulse Toggle (0 or 1)", Float) = 0.0 // 효과 켜고 끄기
+
+        [Header(Rendering)]
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
     }
     SubShader
@@ -22,30 +33,17 @@ Shader "Custom/HealthCircleShader"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _HealthColor;
-                float4 _DamageColor;
-                float4 _BorderColor; // 테두리 색상 프로퍼티
-                float _FillAmount;
-                float _BorderThickness; // 테두리 두께 프로퍼티
-                float _Cutoff;
+                float4 _HealthColor, _DamageColor, _BorderColor, _PulseColor; // _ShineColor 대신 _PulseColor
+                float _FillAmount, _BorderThickness, _PulseSpeed, _PulseIntensity, _PulseToggle, _Cutoff; // shine 대신 pulse
             CBUFFER_END
 
-            struct Attributes
-            {
-                float4 positionOS   : POSITION;
-                float2 uv           : TEXCOORD0;
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS  : SV_POSITION;
-                float2 uv           : TEXCOORD0;
-            };
+            struct Attributes { float4 p:POSITION; float2 uv:TEXCOORD0; };
+            struct Varyings { float4 p:SV_POSITION; float2 uv:TEXCOORD0; };
 
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
-                OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
+                OUT.p = TransformObjectToHClip(IN.p.xyz);
                 OUT.uv = IN.uv;
                 return OUT;
             }
@@ -55,25 +53,31 @@ Shader "Custom/HealthCircleShader"
                 float2 centeredUV = IN.uv - 0.5;
                 float dist = length(centeredUV);
                 
-                float circleAlpha = step(dist, 0.5);
-                clip(circleAlpha - _Cutoff);
+                clip(step(dist, 0.5) - _Cutoff);
 
                 float angle = atan2(centeredUV.y, centeredUV.x);
                 float normalizedAngle = (angle / (2.0 * PI)) + 0.5;
 
-                float colorStep = step(normalizedAngle, _FillAmount);
-                float4 finalColor = lerp(_DamageColor, _HealthColor, colorStep);
+                float4 finalColor = lerp(_DamageColor, _HealthColor, step(normalizedAngle, _FillAmount));
                 
-                // 테두리 계산
-                // 원의 바깥쪽 경계 (0.5)와 안쪽 경계 (0.5 - _BorderThickness) 사이의 영역을 찾습니다.
-                // dist가 (0.5 - _BorderThickness)보다 크고 0.5보다 작거나 같으면 borderMask는 1이 됩니다.
-                float borderMask = step(0.5 - _BorderThickness, dist) * step(dist, 0.5);
-                
-                // 테두리 영역에 _BorderColor를 적용합니다.
+                float borderMask = step(0.5 - _BorderThickness, dist);
                 finalColor = lerp(finalColor, _BorderColor, borderMask);
 
-                finalColor.a = 1.0;
+                // --- 숨 쉬는 듯한 발광 효과 로직 ---
+                if (_PulseToggle > 0.0)
+                {
+                    // 1. 시간에 따라 0~1 사이를 부드럽게 반복하는 값 생성
+                    float pulse = (sin(_Time.y * _PulseSpeed) + 1.0) * 0.5; // -1~1 -> 0~1
+                    
+                    // 2. 강도 적용
+                    pulse *= _PulseIntensity;
+                    
+                    // 3. 최종 색상에 발광 색상을 더함 (기존 색상 위에 덧씌우는 방식)
+                    finalColor.rgb += _PulseColor.rgb * pulse;
+                }
+                // --- 여기까지 ---
 
+                finalColor.a = 1.0;
                 return finalColor;
             }
             ENDHLSL

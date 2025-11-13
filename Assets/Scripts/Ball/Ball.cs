@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using PoC3.TileSystem;
+using TMPro;
 using PoC3.EnemySystem;
 
 public enum BallType
@@ -25,6 +26,7 @@ namespace PoC3.BallSystem
         public int Level => _level;
         public BallType ballType;
         public int maxHealth = 4;
+        public TextMeshProUGUI textLevel;
         [SerializeField] private int _curHealth;
 
         public bool IsLaunched { get; private set; } = false;
@@ -38,7 +40,7 @@ namespace PoC3.BallSystem
         private Material _healthMaterial;
         private Vector2 _lastVelocity;
         private readonly HashSet<Tile> _tilesInContact = new HashSet<Tile>();
-
+         
         /// <summary>
         /// Event fired when the ball's level changes.
         /// </summary>
@@ -78,6 +80,11 @@ namespace PoC3.BallSystem
 
             _curHealth = maxHealth;
             UpdateColorBasedOnLevel(); // Set initial color
+        }
+
+        private void Start()
+        {
+            SetShineEffect(ballType == BallType.Player);
         }
 
         private void FixedUpdate()
@@ -217,22 +224,24 @@ namespace PoC3.BallSystem
 
         private void UpdateColorBasedOnLevel()
         {
-            if (levelRenderer == null) return;
+            textLevel.text = _level.ToString();
 
-            Color targetColor;
-            switch (_level)
-            {
-                case 0: targetColor = Color.black; break;
-                case 1: targetColor = Color.red; break;
-                case 2: targetColor = new Color(1f, 0.5f, 0f); /* Orange */ break;
-                case 3: targetColor = Color.yellow; break;
-                case 4: targetColor = Color.green; break;
-                case 5: targetColor = Color.blue; break;
-                case 6: targetColor = new Color(0.29f, 0f, 0.51f); /* Indigo */ break;
-                case 7: targetColor = new Color(0.5f, 0f, 0.5f); /* Purple */ break;
-                default: targetColor = new Color(1f, 0.75f, 0.8f); /* Pink */ break; // Level 8 and above
-            }
-            levelRenderer.color = targetColor;
+            //if (levelRenderer == null) return;
+
+            //Color targetColor;
+            //switch (_level)
+            //{
+            //    case 0: targetColor = Color.black; break;
+            //    case 1: targetColor = Color.red; break;
+            //    case 2: targetColor = new Color(1f, 0.5f, 0f); /* Orange */ break;
+            //    case 3: targetColor = Color.yellow; break;
+            //    case 4: targetColor = Color.green; break;
+            //    case 5: targetColor = Color.blue; break;
+            //    case 6: targetColor = new Color(0.29f, 0f, 0.51f); /* Indigo */ break;
+            //    case 7: targetColor = new Color(0.5f, 0f, 0.5f); /* Purple */ break;
+            //    default: targetColor = new Color(1f, 0.75f, 0.8f); /* Pink */ break; // Level 8 and above
+            //}
+            //levelRenderer.color = targetColor;
         }
         
         private void TakeDamage(int amount)
@@ -243,6 +252,12 @@ namespace PoC3.BallSystem
 
             if (_curHealth <= 0)
                 Destroy(gameObject);
+        }
+
+        public void SetShineEffect(bool isOn)
+        {
+            float toggle = (isOn ? 1.0f : 0.0f);
+            _healthMaterial.SetFloat("_PulseToggle", toggle);
         }
     }
 }
