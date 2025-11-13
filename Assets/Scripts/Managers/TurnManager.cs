@@ -29,13 +29,15 @@ namespace PoC3.ManagerSystem
         [SerializeField] private Transform _ballSpawnPoint;
 
         [Header("Turn Settings")]
-        [SerializeField] private int _initialBalls = 3;
-        [SerializeField] private int _ballsPerTurn = 1;
         [SerializeField] private int _baseAttackDamage = 5;
+
+        [Header("Ball Charge Settings")]
+        [SerializeField] private float _ballChargeDuration = 5f;
 
         private StateMachine _stateMachine;
         private int _currentBallsInHand;
-        private bool _isFirstTurn = true;
+        private float _ballChargeTimer;
+        private bool _isChargingBall;
         
         // Bonus stats accumulated this turn
         private int _accumulatedAttack;
@@ -50,6 +52,7 @@ namespace PoC3.ManagerSystem
         public event Action<int> OnAttackAccumulated;
         public event Action<int> OnDefenseAccumulated;
         public event Action<int> OnHealthAccumulated;
+        public event Action<float> OnBallChargeProgress;
 
         private void Awake()
         {
@@ -102,19 +105,9 @@ namespace PoC3.ManagerSystem
             OnDefenseAccumulated?.Invoke(_accumulatedDefense);
             OnHealthAccumulated?.Invoke(_accumulatedHealth);
 
-            // If it's the very first turn, initialize with initial balls. Otherwise, add balls per turn.
-            if (_isFirstTurn)
-            {
-                _currentBallsInHand = _initialBalls;
-                _isFirstTurn = false;
-            }
-            else
-            {
-                _currentBallsInHand += _ballsPerTurn;
-            }
-            
             OnTurnStart?.Invoke();
             OnBallsInHandChanged?.Invoke(_currentBallsInHand);
+            EnsureBallChargeRoutine();
         }
 
         /// <summary>
@@ -150,11 +143,16 @@ namespace PoC3.ManagerSystem
         {
             if (ball != null && !ball.IsLaunched)
             {
-                _currentBallsInHand--;
+                _currentBallsInHand = Mathf.Max(0, _currentBallsInHand - 1);
                 OnBallsInHandChanged?.Invoke(_currentBallsInHand);
                 
                 ball.Launch(force);
                 OnBallLaunched?.Invoke(ball);
+
+                if (_currentBallsInHand <= 0)
+                {
+                    RestartChargeTimer();
+                }
             }
         }
 
@@ -238,6 +236,79 @@ namespace PoC3.ManagerSystem
             {
                 ball.UseBall();
             }
+        }
+
+        private void Update()
+        {
+            if (!_isChargingBall || _ballChargeDuration <= 0f)
+            {
+                return;
+            }
+
+            _ballChargeTimer += Time.deltaTime;
+            float progress = Mathf.Clamp01(_ballChargeTimer / _ballChargeDuration);
+            OnBallChargeProgress?.Invoke(progress);
+
+            if (_ballChargeTimer >= _ballChargeDuration)
+            {
+                _ballChargeTimer = 0f;
+                GrantChargedBall();
+            }
+        }
+
+        private void GrantChargedBall()
+        {
+            _currentBallsInHand++;
+            OnBallsInHandChanged?.Invoke(_currentBallsInHand);
+            Debug.Log("[TurnManager] Ball charge complete. Granted 1 ball.");
+            StopChargeTimer();
+            PrepareNextBall();
+        }
+
+        private void EnsureBallChargeRoutine()
+        {
+            if (_currentBallsInHand > 0)
+            {
+                StopChargeTimer();
+                return;
+            }
+
+            if (!_isChargingBall)
+            {
+                StartChargeTimer();
+            }
+        }
+
+        private void StartChargeTimer()
+        {
+            if (_ballChargeDuration <= 0f)
+            {
+                Debug.LogWarning("[TurnManager] Ball charge duration must be greater than zero.");
+                return;
+            }
+
+            _isChargingBall = true;
+            OnBallChargeProgress?.Invoke(Mathf.Clamp01(_ballChargeTimer / _ballChargeDuration));
+        }
+
+        private void RestartChargeTimer()
+        {
+            if (_ballChargeDuration <= 0f)
+            {
+                Debug.LogWarning("[TurnManager] Ball charge duration must be greater than zero.");
+                return;
+            }
+
+            _ballChargeTimer = 0f;
+            _isChargingBall = true;
+            OnBallChargeProgress?.Invoke(0f);
+        }
+
+        private void StopChargeTimer()
+        {
+            _isChargingBall = false;
+            _ballChargeTimer = 0f;
+            OnBallChargeProgress?.Invoke(0f);
         }
     }
 }

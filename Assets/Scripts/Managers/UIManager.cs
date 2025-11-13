@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 using PoC3.PlayerSystem;
 using PoC3.ManagerSystem;
 
@@ -24,6 +25,7 @@ namespace PoC3.UISystem
 
         [Header("Turn Info UI")]
         [SerializeField] private TextMeshProUGUI _ballsInHandText;
+        [SerializeField] private Slider _ballChargeSlider;
 
         private void Awake()
         {
@@ -58,10 +60,12 @@ namespace PoC3.UISystem
                 TurnManager.Instance.OnDefenseAccumulated += UpdateTurnBonusDefense;
                 TurnManager.Instance.OnHealthAccumulated += UpdateTurnBonusHealth;
                 TurnManager.Instance.OnBallsInHandChanged += UpdateBallsInHand;
+                TurnManager.Instance.OnBallChargeProgress += UpdateBallChargeSlider;
                 // Initial UI update
                 UpdateTurnBonusAttack(0);
                 UpdateTurnBonusDefense(0);
                 UpdateTurnBonusHealth(0);
+                UpdateBallChargeSlider(0f);
             }
         }
 
@@ -80,6 +84,7 @@ namespace PoC3.UISystem
                 TurnManager.Instance.OnDefenseAccumulated -= UpdateTurnBonusDefense;
                 TurnManager.Instance.OnHealthAccumulated -= UpdateTurnBonusHealth;
                 TurnManager.Instance.OnBallsInHandChanged -= UpdateBallsInHand;
+                TurnManager.Instance.OnBallChargeProgress -= UpdateBallChargeSlider;
             }
         }
 
@@ -126,6 +131,14 @@ namespace PoC3.UISystem
         {
             if (_ballsInHandText != null)
                 _ballsInHandText.text = $"Balls Left: {amount}";
+        }
+
+        private void UpdateBallChargeSlider(float progress)
+        {
+            if (_ballChargeSlider != null)
+            {
+                _ballChargeSlider.value = progress;
+            }
         }
     }
 }
