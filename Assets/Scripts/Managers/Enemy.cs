@@ -131,13 +131,9 @@ namespace PoC3.EnemySystem
             }
         }
 
-        // Usage in Unity:
-        // 1. Create an empty GameObject in the Hierarchy, name it "Enemy".
-        // 2. Add a SpriteRenderer component and assign a sprite.
-        // 3. Add a Collider2D component (e.g., BoxCollider2D) and ensure it's NOT a trigger.
-        // 4. Add this Enemy.cs script as a component.
-        // 5. Set the GameObject's Tag to "Enemy" (create this tag in Unity if it doesn't exist).
-        // 6. Adjust stats in the Inspector.
-        // 7. Create a child GameObject (e.g., a Square sprite) for the highlight, and assign it to _highlightIndicator.
+        private void OnEnable()
+        {
+            ManagerSystem.EnemyManager.Instance?.RegisterEnemy(this);
+        }
     }
 }

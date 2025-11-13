@@ -18,11 +18,6 @@ namespace PoC3.UISystem
         [SerializeField] private TextMeshProUGUI _playerDefenseText;
         [SerializeField] private TextMeshProUGUI _playerAttackText;
 
-        [Header("Turn Bonus UI")]
-        [SerializeField] private TextMeshProUGUI _turnBonusAttackText;
-        [SerializeField] private TextMeshProUGUI _turnBonusDefenseText;
-        [SerializeField] private TextMeshProUGUI _turnBonusHealthText;
-
         [Header("Turn Info UI")]
         [SerializeField] private TextMeshProUGUI _ballsInHandText;
         [SerializeField] private Slider _ballChargeSlider;
@@ -57,16 +52,10 @@ namespace PoC3.UISystem
             // Subscribe to TurnManager events
             if (TurnManager.Instance != null)
             {
-                TurnManager.Instance.OnAttackAccumulated += UpdateTurnBonusAttack;
-                TurnManager.Instance.OnDefenseAccumulated += UpdateTurnBonusDefense;
-                TurnManager.Instance.OnHealthAccumulated += UpdateTurnBonusHealth;
                 TurnManager.Instance.OnBallsInHandChanged += UpdateBallsInHand;
                 TurnManager.Instance.OnBallChargeProgress += UpdateBallChargeSlider;
                 TurnManager.Instance.OnBoardTimerProgress += UpdateBoardTimerSlider;
                 // Initial UI update
-                UpdateTurnBonusAttack(0);
-                UpdateTurnBonusDefense(0);
-                UpdateTurnBonusHealth(0);
                 UpdateBallChargeSlider(0f);
                 UpdateBoardTimerSlider(1f);
             }
@@ -83,9 +72,6 @@ namespace PoC3.UISystem
             }
             if (TurnManager.Instance != null)
             {
-                TurnManager.Instance.OnAttackAccumulated -= UpdateTurnBonusAttack;
-                TurnManager.Instance.OnDefenseAccumulated -= UpdateTurnBonusDefense;
-                TurnManager.Instance.OnHealthAccumulated -= UpdateTurnBonusHealth;
                 TurnManager.Instance.OnBallsInHandChanged -= UpdateBallsInHand;
                 TurnManager.Instance.OnBallChargeProgress -= UpdateBallChargeSlider;
                 TurnManager.Instance.OnBoardTimerProgress -= UpdateBoardTimerSlider;
@@ -109,25 +95,6 @@ namespace PoC3.UISystem
         {
             if (_playerAttackText != null)
                 _playerAttackText.text = $"Player ATK: {amount}";
-        }
-
-        // --- Turn Bonus UI Methods ---
-        private void UpdateTurnBonusAttack(int amount)
-        {
-            if (_turnBonusAttackText != null)
-                _turnBonusAttackText.text = $"Bonus ATK: +{amount}";
-        }
-
-        private void UpdateTurnBonusDefense(int amount)
-        {
-            if (_turnBonusDefenseText != null)
-                _turnBonusDefenseText.text = $"Bonus DEF: +{amount}";
-        }
-
-        private void UpdateTurnBonusHealth(int amount)
-        {
-            if (_turnBonusHealthText != null)
-                _turnBonusHealthText.text = $"Bonus HEAL: +{amount}";
         }
 
         // --- Turn Info UI Methods ---

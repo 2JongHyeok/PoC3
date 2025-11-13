@@ -13,7 +13,9 @@ namespace PoC3.ManagerSystem
     {
         public static EnemyManager Instance { get; private set; }
 
-        private List<Enemy> _activeEnemies = new List<Enemy>();
+        [SerializeField] private List<Enemy> _preRegisteredEnemies = new List<Enemy>();
+        private readonly List<Enemy> _activeEnemies = new List<Enemy>();
+        private readonly Dictionary<Enemy, Action> _enemyDeathCallbacks = new Dictionary<Enemy, Action>();
 
         public event Action<Enemy> OnEnemyRegistered;
         public event Action<Enemy> OnEnemyUnregistered;
@@ -32,9 +34,13 @@ namespace PoC3.ManagerSystem
 
         private void Start()
         {
-            // Find all enemies already in the scene and register them
-            Enemy[] enemiesInScene = FindObjectsOfType<Enemy>();
-            foreach (Enemy enemy in enemiesInScene)
+            // Manual registration: assign enemies in Inspector or call RegisterEnemy elsewhere.
+            if (_preRegisteredEnemies == null)
+            {
+                return;
+            }
+
+            foreach (Enemy enemy in _preRegisteredEnemies)
             {
                 RegisterEnemy(enemy);
             }
@@ -45,13 +51,17 @@ namespace PoC3.ManagerSystem
         /// </summary>
         public void RegisterEnemy(Enemy enemy)
         {
-            if (!_activeEnemies.Contains(enemy))
+            if (enemy == null || _activeEnemies.Contains(enemy))
             {
-                _activeEnemies.Add(enemy);
-                enemy.OnDied += () => UnregisterEnemy(enemy); // Subscribe to death event
-                OnEnemyRegistered?.Invoke(enemy);
-                Debug.Log($"[EnemyManager] Registered enemy: {enemy.name}");
+                return;
             }
+
+            _activeEnemies.Add(enemy);
+            Action deathCallback = () => UnregisterEnemy(enemy);
+            _enemyDeathCallbacks[enemy] = deathCallback;
+            enemy.OnDied += deathCallback;
+            OnEnemyRegistered?.Invoke(enemy);
+            Debug.Log($"[EnemyManager] Registered enemy: {enemy.name}");
         }
 
         /// <summary>
@@ -59,12 +69,24 @@ namespace PoC3.ManagerSystem
         /// </summary>
         private void UnregisterEnemy(Enemy enemy)
         {
-            if (_activeEnemies.Remove(enemy))
+            if (!_activeEnemies.Remove(enemy))
             {
-                enemy.OnDied -= () => UnregisterEnemy(enemy); // Unsubscribe
-                OnEnemyUnregistered?.Invoke(enemy);
-                Debug.Log($"[EnemyManager] Unregistered enemy: {enemy.name}");
+                return;
             }
+
+            if (enemy != null && _enemyDeathCallbacks.TryGetValue(enemy, out Action callback))
+            {
+                enemy.OnDied -= callback;
+                _enemyDeathCallbacks.Remove(enemy);
+            }
+
+            OnEnemyUnregistered?.Invoke(enemy);
+            Debug.Log($"[EnemyManager] Unregistered enemy: {enemy?.name}");
+        }
+
+        public void ManualUnregister(Enemy enemy)
+        {
+            UnregisterEnemy(enemy);
         }
 
         /// <summary>
