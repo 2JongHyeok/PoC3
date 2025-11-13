@@ -26,6 +26,7 @@ namespace PoC3.UISystem
         [Header("Turn Info UI")]
         [SerializeField] private TextMeshProUGUI _ballsInHandText;
         [SerializeField] private Slider _ballChargeSlider;
+        [SerializeField] private Slider _boardTimerSlider;
 
         private void Awake()
         {
@@ -61,11 +62,13 @@ namespace PoC3.UISystem
                 TurnManager.Instance.OnHealthAccumulated += UpdateTurnBonusHealth;
                 TurnManager.Instance.OnBallsInHandChanged += UpdateBallsInHand;
                 TurnManager.Instance.OnBallChargeProgress += UpdateBallChargeSlider;
+                TurnManager.Instance.OnBoardTimerProgress += UpdateBoardTimerSlider;
                 // Initial UI update
                 UpdateTurnBonusAttack(0);
                 UpdateTurnBonusDefense(0);
                 UpdateTurnBonusHealth(0);
                 UpdateBallChargeSlider(0f);
+                UpdateBoardTimerSlider(1f);
             }
         }
 
@@ -85,6 +88,7 @@ namespace PoC3.UISystem
                 TurnManager.Instance.OnHealthAccumulated -= UpdateTurnBonusHealth;
                 TurnManager.Instance.OnBallsInHandChanged -= UpdateBallsInHand;
                 TurnManager.Instance.OnBallChargeProgress -= UpdateBallChargeSlider;
+                TurnManager.Instance.OnBoardTimerProgress -= UpdateBoardTimerSlider;
             }
         }
 
@@ -138,6 +142,14 @@ namespace PoC3.UISystem
             if (_ballChargeSlider != null)
             {
                 _ballChargeSlider.value = progress;
+            }
+        }
+
+        private void UpdateBoardTimerSlider(float progress)
+        {
+            if (_boardTimerSlider != null)
+            {
+                _boardTimerSlider.value = progress;
             }
         }
     }

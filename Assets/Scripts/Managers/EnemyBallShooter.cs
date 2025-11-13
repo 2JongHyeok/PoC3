@@ -15,7 +15,8 @@ namespace PoC3.EnemySystem
         [SerializeField] private GameBoard _gameBoard;
         [SerializeField] private Ball _ballPrefab;
         [SerializeField] private Transform _spawnPoint;
-        [SerializeField] private UnityEngine.UI.Slider _chargeSlider;
+        [SerializeField] private Slider _chargeSlider;
+        [SerializeField] private Enemy _ownerEnemy;
 
         [Header("Launch Settings")]
         [SerializeField] private float _chargeDuration = 5f;
@@ -29,6 +30,11 @@ namespace PoC3.EnemySystem
             if (_spawnPoint == null)
             {
                 _spawnPoint = transform;
+            }
+
+            if (_ownerEnemy == null)
+            {
+                _ownerEnemy = GetComponent<Enemy>();
             }
         }
 
@@ -44,6 +50,13 @@ namespace PoC3.EnemySystem
         {
             if (_ballPrefab == null || _gameBoard == null || _chargeDuration <= 0f)
             {
+                return;
+            }
+
+            if (TurnManager.Instance != null && !TurnManager.Instance.IsBoardTimerRunning)
+            {
+                _chargeTimer = 0f;
+                UpdateChargeUI(0f);
                 return;
             }
 
@@ -64,6 +77,7 @@ namespace PoC3.EnemySystem
         {
             Ball newBall = Instantiate(_ballPrefab, _spawnPoint.position, Quaternion.identity);
             newBall.ballType = BallType.Enemy;
+            newBall.AssignOwnerEnemy(_ownerEnemy);
             _gameBoard.AddBall(newBall);
 
             Vector2 direction = GetTargetDirection();

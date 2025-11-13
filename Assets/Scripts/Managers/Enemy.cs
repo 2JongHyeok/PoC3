@@ -16,23 +16,45 @@ namespace PoC3.EnemySystem
         private int _currentDefense = 0;
         [SerializeField]
         private int _baseAttackDamage = 5; // Base damage this enemy deals
+        [SerializeField]
+        private int _currentAttackDamage = 5;
 
         [Header("Visuals")]
         [SerializeField] private GameObject _highlightIndicator;
 
         public event Action<int, int> OnHealthChanged; // currentHealth, maxHealth
         public event Action<int> OnDefenseChanged;
+        public event Action<int> OnAttackChanged;
         public event Action OnDied;
 
         public int CurrentHealth => _currentHealth;
         public int MaxHealth => _maxHealth;
         public int CurrentDefense => _currentDefense;
         public int BaseAttackDamage => _baseAttackDamage;
+        public int CurrentAttackDamage => _currentAttackDamage;
+
+        public void AddDefense(int amount)
+        {
+            if (amount <= 0) return;
+            _currentDefense += amount;
+            Debug.Log($"[Enemy] {name} gained {amount} defense. Total defense: {_currentDefense}");
+            OnDefenseChanged?.Invoke(_currentDefense);
+        }
+
+        public void AddHealth(int amount)
+        {
+            if (amount <= 0) return;
+            _currentHealth = Mathf.Min(_currentHealth + amount, _maxHealth);
+            Debug.Log($"[Enemy] {name} healed {amount}. Total HP: {_currentHealth}/{_maxHealth}");
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        }
 
         private void Start()
         {
+            _currentAttackDamage = _baseAttackDamage;
             OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
             OnDefenseChanged?.Invoke(_currentDefense);
+            OnAttackChanged?.Invoke(_currentAttackDamage);
             if (_highlightIndicator != null)
             {
                 _highlightIndicator.SetActive(false);
@@ -63,6 +85,20 @@ namespace PoC3.EnemySystem
             {
                 Die();
             }
+        }
+
+        public void AddAttackDamage(int amount)
+        {
+            if (amount <= 0) return;
+            _currentAttackDamage += amount;
+            Debug.Log($"[Enemy] {name} gained {amount} attack. Total attack: {_currentAttackDamage}");
+            OnAttackChanged?.Invoke(_currentAttackDamage);
+        }
+
+        public void ResetAttackDamage()
+        {
+            _currentAttackDamage = _baseAttackDamage;
+            OnAttackChanged?.Invoke(_currentAttackDamage);
         }
 
         private void Die()

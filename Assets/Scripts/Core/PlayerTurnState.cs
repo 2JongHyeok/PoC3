@@ -31,6 +31,7 @@ namespace PoC3.Core
             _turnManager.PrepareNextBall(); // Automatically prepare one ball for the player
             _isWaitingForBallsToStop = false;
             _turnManager.OnBallLaunched += HandleBallLaunched;
+            _turnManager.OnBoardTimerEnded += HandleBoardTimerEnded;
         }
 
         public void OnUpdate()
@@ -40,16 +41,18 @@ namespace PoC3.Core
                 // If we are waiting for balls to stop, check their status
                 if (_turnManager.GameBoard.AreAllBallsStopped())
                 {
-                    Debug.Log("[PlayerTurnState] All balls have stopped. Preparing next ball if available.");
+                    Debug.Log("[PlayerTurnState] All balls have stopped. Preparing next ball if timer allows.");
                     _isWaitingForBallsToStop = false;
-                    _turnManager.CalculateCurrentBonuses(); // Calculate bonuses immediately when balls stop
-                    _turnManager.PrepareNextBall();
+                    if (_turnManager.CanPlayerLaunch())
+                    {
+                        _turnManager.PrepareNextBall();
+                    }
                 }
             }
             else
             {
-                // If we are not waiting, the player can attack an enemy to end the turn.
-                if (Input.GetMouseButtonDown(0))
+                // If the timer is finished and we are not waiting, the player can attack.
+                if (!_turnManager.IsBoardTimerRunning && Input.GetMouseButtonDown(0))
                 {
                     CheckForEnemyClick();
                 }
@@ -77,12 +80,18 @@ namespace PoC3.Core
         {
             Debug.Log("[State] Exiting PlayerTurnState");
             _turnManager.OnBallLaunched -= HandleBallLaunched;
+            _turnManager.OnBoardTimerEnded -= HandleBoardTimerEnded;
         }
 
         private void HandleBallLaunched(Ball ball)
         {
             Debug.Log($"[PlayerTurnState] Ball {ball.name} was launched. Waiting for it to stop.");
             _isWaitingForBallsToStop = true;
+        }
+
+        private void HandleBoardTimerEnded()
+        {
+            _isWaitingForBallsToStop = false;
         }
     }
 }

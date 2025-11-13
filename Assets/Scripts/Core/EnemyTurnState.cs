@@ -55,7 +55,7 @@ namespace PoC3.Core
                 {
                     Debug.Log($"[EnemyTurnState] {enemy.name} is attacking the player.");
                     // TODO: Add attack animation/visual effect here
-                    _player.TakeDamage(enemy.BaseAttackDamage);
+                    _player.TakeDamage(enemy.CurrentAttackDamage);
                     
                     // Wait before the next enemy attacks
                     yield return new WaitForSeconds(0.5f);

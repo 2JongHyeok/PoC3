@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using PoC3.TileSystem;
+using PoC3.EnemySystem;
 
 public enum BallType
 {
@@ -27,6 +28,7 @@ namespace PoC3.BallSystem
         [SerializeField] private int _curHealth;
 
         public bool IsLaunched { get; private set; } = false;
+        public Enemy OwnerEnemy { get; private set; }
 
         private Rigidbody2D _rb;
         private CircleCollider2D _circleCollider;
@@ -117,6 +119,7 @@ namespace PoC3.BallSystem
             OnBallUsed?.Invoke(this);
             Debug.Log($"[Ball] Ball {name} used.");
             _tilesInContact.Clear();
+            OwnerEnemy = null;
             // In a real game, you might disable the GameObject or return it to a pool here.
             gameObject.SetActive(false);
         }
@@ -205,6 +208,11 @@ namespace PoC3.BallSystem
         public bool IsStopped(float threshold = 0.1f)
         {
             return _rb != null && _rb.linearVelocity.magnitude < threshold;
+        }
+
+        public void AssignOwnerEnemy(Enemy enemy)
+        {
+            OwnerEnemy = enemy;
         }
 
         private void UpdateColorBasedOnLevel()

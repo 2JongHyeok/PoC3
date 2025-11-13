@@ -23,6 +23,7 @@ namespace PoC3.ManagerSystem
         [SerializeField] private BallLauncher _ballLauncher;
         [SerializeField] private EnemyManager _enemyManager;
         [SerializeField] private Player _player;
+        [SerializeField] private BoardTimerManager _boardTimer;
 
         [Header("Prefabs & Spawn")]
         [SerializeField] private Ball _ballPrefab;
@@ -44,6 +45,7 @@ namespace PoC3.ManagerSystem
         private int _accumulatedDefense;
         private int _accumulatedHealth;
 
+
         public event Action OnTurnStart;
         public event Action OnTurnEnd;
         public event Action<int> OnBallsInHandChanged;
@@ -53,6 +55,11 @@ namespace PoC3.ManagerSystem
         public event Action<int> OnDefenseAccumulated;
         public event Action<int> OnHealthAccumulated;
         public event Action<float> OnBallChargeProgress;
+        public event Action<float> OnBoardTimerProgress;
+        public event Action OnBoardTimerEnded;
+
+        public BoardTimerManager BoardTimer => _boardTimer;
+        public bool IsBoardTimerRunning => _boardTimer == null || _boardTimer.IsRunning;
 
         private void Awake()
         {
@@ -79,6 +86,11 @@ namespace PoC3.ManagerSystem
             }
 
             _ballLauncher.OnLaunch += HandleLaunch;
+            if (_boardTimer != null)
+            {
+                _boardTimer.OnTimerTick += HandleBoardTimerTick;
+                _boardTimer.OnTimerEnded += HandleBoardTimerEnded;
+            }
             
             // Initialize and start the first turn
             _stateMachine.Initialize(new PlayerTurnState(this, _stateMachine));
@@ -89,6 +101,12 @@ namespace PoC3.ManagerSystem
             if (_ballLauncher != null)
             {
                 _ballLauncher.OnLaunch -= HandleLaunch;
+            }
+
+            if (_boardTimer != null)
+            {
+                _boardTimer.OnTimerTick -= HandleBoardTimerTick;
+                _boardTimer.OnTimerEnded -= HandleBoardTimerEnded;
             }
         }
 
@@ -107,6 +125,8 @@ namespace PoC3.ManagerSystem
 
             OnTurnStart?.Invoke();
             OnBallsInHandChanged?.Invoke(_currentBallsInHand);
+            ResetEnemyAttackStats();
+            _boardTimer?.ResetTimer();
             EnsureBallChargeRoutine();
         }
 
@@ -116,6 +136,11 @@ namespace PoC3.ManagerSystem
         /// </summary>
         public void PrepareNextBall()
         {
+            if (!CanLaunch())
+            {
+                return;
+            }
+
             if (_currentBallsInHand <= 0)
             {
                 Debug.Log("[TurnManager] No balls left in hand.");
@@ -141,7 +166,7 @@ namespace PoC3.ManagerSystem
         /// </summary>
         private void HandleLaunch(Ball ball, Vector2 force)
         {
-            if (ball != null && !ball.IsLaunched)
+            if (ball != null && !ball.IsLaunched && CanLaunch())
             {
                 _currentBallsInHand = Mathf.Max(0, _currentBallsInHand - 1);
                 OnBallsInHandChanged?.Invoke(_currentBallsInHand);
@@ -167,7 +192,7 @@ namespace PoC3.ManagerSystem
 
             foreach (Ball ball in GameBoard.ActiveBalls)
             {
-                if (!ball.IsLaunched) continue; // Don't count the un-launched ball
+                if (ball == null || !ball.IsLaunched) continue; // Don't count the un-launched ball
 
                 foreach (Tile tile in ball.TilesInContact)
                 {
@@ -208,19 +233,15 @@ namespace PoC3.ManagerSystem
             Debug.Log("[TurnManager] Attacking enemy and ending turn.");
             
             // 1. Apply total damage to enemy (using pre-calculated bonuses)
-            int totalDamage = _player.CurrentAttackDamage + _accumulatedAttack;
-            Debug.Log($"[TurnManager] Applying total damage: {_player.CurrentAttackDamage} (base) + {_accumulatedAttack} (bonus) = {totalDamage}");
+            int totalDamage = _player.CurrentAttackDamage;
+            Debug.Log($"[TurnManager] Applying total damage: {totalDamage}");
             enemy.TakeDamage(totalDamage);
 
-            // 2. Apply bonus stats to player
-            _player.AddDefense(_accumulatedDefense);
-            _player.AddHealth(_accumulatedHealth);
-
-            // 3. Clean up the board
+            // 2. Clean up the board
             CleanupBoard();
             OnTurnEnd?.Invoke();
 
-            // 4. Transition to the next state
+            // 3. Transition to the next state
             _stateMachine.ChangeState(new EnemyTurnState(this, _stateMachine, _enemyManager, _player));
         }
 
@@ -234,6 +255,11 @@ namespace PoC3.ManagerSystem
             List<Ball> ballsToClean = new List<Ball>(GameBoard.ActiveBalls);
             foreach (Ball ball in ballsToClean)
             {
+                if (ball == null)
+                {
+                    continue;
+                }
+
                 ball.UseBall();
             }
         }
@@ -262,11 +288,20 @@ namespace PoC3.ManagerSystem
             OnBallsInHandChanged?.Invoke(_currentBallsInHand);
             Debug.Log("[TurnManager] Ball charge complete. Granted 1 ball.");
             StopChargeTimer();
-            PrepareNextBall();
+            if (CanLaunch())
+            {
+                PrepareNextBall();
+            }
         }
 
         private void EnsureBallChargeRoutine()
         {
+            if (!CanLaunch())
+            {
+                StopChargeTimer();
+                return;
+            }
+
             if (_currentBallsInHand > 0)
             {
                 StopChargeTimer();
@@ -287,6 +322,11 @@ namespace PoC3.ManagerSystem
                 return;
             }
 
+            if (!CanLaunch())
+            {
+                return;
+            }
+
             _isChargingBall = true;
             OnBallChargeProgress?.Invoke(Mathf.Clamp01(_ballChargeTimer / _ballChargeDuration));
         }
@@ -296,6 +336,12 @@ namespace PoC3.ManagerSystem
             if (_ballChargeDuration <= 0f)
             {
                 Debug.LogWarning("[TurnManager] Ball charge duration must be greater than zero.");
+                return;
+            }
+
+            if (!CanLaunch())
+            {
+                StopChargeTimer();
                 return;
             }
 
@@ -309,6 +355,181 @@ namespace PoC3.ManagerSystem
             _isChargingBall = false;
             _ballChargeTimer = 0f;
             OnBallChargeProgress?.Invoke(0f);
+        }
+
+        private void ResetEnemyAttackStats()
+        {
+            foreach (Enemy enemy in _enemyManager.GetAllActiveEnemies())
+            {
+                enemy?.ResetAttackDamage();
+            }
+        }
+
+        public bool CanPlayerLaunch()
+        {
+            return CanLaunch();
+        }
+
+        private bool CanLaunch()
+        {
+            if (_boardTimer == null)
+            {
+                return true;
+            }
+
+            return _boardTimer.IsRunning;
+        }
+
+        private void HandleBoardTimerTick(float normalized)
+        {
+            OnBoardTimerProgress?.Invoke(normalized);
+        }
+
+        private void HandleBoardTimerEnded()
+        {
+            Debug.Log("[TurnManager] Board timer expired. Stopping all launches.");
+            StopChargeTimer();
+            ForceStopAllBalls();
+            CalculateBoardBuffsForBothSides();
+            OnBoardTimerEnded?.Invoke();
+        }
+
+        private void ForceStopAllBalls()
+        {
+            foreach (Ball ball in GameBoard.ActiveBalls)
+            {
+                if (ball == null)
+                {
+                    continue;
+                }
+
+                if (!ball.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
+                {
+                    continue;
+                }
+
+                rb.linearVelocity = Vector2.zero;
+                rb.angularVelocity = 0f;
+            }
+        }
+
+        private void CalculateBoardBuffsForBothSides()
+        {
+            int playerBuffAttack = 0;
+            int playerBuffDefense = 0;
+            int playerBuffHealth = 0;
+
+            var enemyAttackBuffs = new Dictionary<Enemy, int>();
+            var enemyDefenseBuffs = new Dictionary<Enemy, int>();
+            var enemyHealthBuffs = new Dictionary<Enemy, int>();
+
+            foreach (Ball ball in GameBoard.ActiveBalls)
+            {
+                if (ball == null || !ball.IsLaunched)
+                {
+                    continue;
+                }
+
+                foreach (Tile tile in ball.TilesInContact)
+                {
+                    if (tile == null || tile.CurrentTileEffect == null)
+                    {
+                        continue;
+                    }
+
+                    int effectValue = tile.ActivateTileEffect(ball.Level);
+                    switch (tile.CurrentTileEffect.Type)
+                    {
+                        case EffectType.Attack:
+                            if (ball.ballType == BallType.Player)
+                            {
+                                playerBuffAttack += effectValue;
+                            }
+                            else
+                            {
+                                AddEnemyBuff(enemyAttackBuffs, ball.OwnerEnemy, effectValue);
+                            }
+                            break;
+                        case EffectType.Defense:
+                            if (ball.ballType == BallType.Player)
+                            {
+                                playerBuffDefense += effectValue;
+                            }
+                            else
+                            {
+                                AddEnemyBuff(enemyDefenseBuffs, ball.OwnerEnemy, effectValue);
+                            }
+                            break;
+                        case EffectType.Health:
+                            if (ball.ballType == BallType.Player)
+                            {
+                                playerBuffHealth += effectValue;
+                            }
+                            else
+                            {
+                                AddEnemyBuff(enemyHealthBuffs, ball.OwnerEnemy, effectValue);
+                            }
+                            break;
+                    }
+                }
+            }
+
+            if (playerBuffDefense > 0)
+            {
+                _player.AddDefense(playerBuffDefense);
+            }
+
+            if (playerBuffHealth > 0)
+            {
+                _player.AddHealth(playerBuffHealth);
+            }
+
+            if (playerBuffAttack > 0)
+            {
+                _player.AddAttackDamage(playerBuffAttack);
+            }
+
+            _accumulatedAttack = 0;
+            _accumulatedDefense = 0;
+            _accumulatedHealth = 0;
+            OnAttackAccumulated?.Invoke(_accumulatedAttack);
+            OnDefenseAccumulated?.Invoke(_accumulatedDefense);
+            OnHealthAccumulated?.Invoke(_accumulatedHealth);
+
+            ApplyEnemyBuffs(enemyAttackBuffs, (enemy, value) => enemy.AddAttackDamage(value));
+            ApplyEnemyBuffs(enemyDefenseBuffs, (enemy, value) => enemy.AddDefense(value));
+            ApplyEnemyBuffs(enemyHealthBuffs, (enemy, value) => enemy.AddHealth(value));
+        }
+
+        private void AddEnemyBuff(Dictionary<Enemy, int> buffer, Enemy enemy, int amount)
+        {
+            if (enemy == null || amount == 0)
+            {
+                return;
+            }
+
+            if (buffer.TryGetValue(enemy, out int current))
+            {
+                buffer[enemy] = current + amount;
+            }
+            else
+            {
+                buffer[enemy] = amount;
+            }
+        }
+
+        private void ApplyEnemyBuffs(Dictionary<Enemy, int> buffer, Action<Enemy, int> applyAction)
+        {
+            foreach (KeyValuePair<Enemy, int> kvp in buffer)
+            {
+                Enemy enemy = kvp.Key;
+                if (enemy == null)
+                {
+                    continue;
+                }
+
+                applyAction(enemy, kvp.Value);
+            }
         }
     }
 }

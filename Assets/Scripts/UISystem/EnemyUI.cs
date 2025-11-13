@@ -34,15 +34,13 @@ namespace PoC3.UISystem
             // Subscribe to events
             _enemy.OnHealthChanged += UpdateHealth;
             _enemy.OnDefenseChanged += UpdateDefense;
+            _enemy.OnAttackChanged += UpdateAttack;
             _enemy.OnDied += HandleEnemyDied;
 
             // Initial UI update
             UpdateHealth(_enemy.CurrentHealth, _enemy.MaxHealth);
             UpdateDefense(_enemy.CurrentDefense);
-            if (_attackText != null)
-            {
-                _attackText.text = $"ATK: {_enemy.BaseAttackDamage}";
-            }
+            UpdateAttack(_enemy.CurrentAttackDamage);
         }
 
         private void OnDisable()
@@ -52,6 +50,7 @@ namespace PoC3.UISystem
             {
                 _enemy.OnHealthChanged -= UpdateHealth;
                 _enemy.OnDefenseChanged -= UpdateDefense;
+                _enemy.OnAttackChanged -= UpdateAttack;
                 _enemy.OnDied -= HandleEnemyDied;
             }
         }
@@ -66,6 +65,12 @@ namespace PoC3.UISystem
         {
             if (_defenseText != null)
                 _defenseText.text = $"DEF: {current}";
+        }
+
+        private void UpdateAttack(int current)
+        {
+            if (_attackText != null)
+                _attackText.text = $"ATK: {current}";
         }
 
         private void HandleEnemyDied()
