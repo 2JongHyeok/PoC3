@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 namespace PoC3.TileSystem
@@ -11,6 +12,7 @@ namespace PoC3.TileSystem
         [SerializeField]
         private TileEffect _tileEffect; // The ScriptableObject defining this tile's effect
         public TileEffect CurrentTileEffect => _tileEffect;
+        public TextMeshProUGUI textEffect;
 
         // Optional: Visual representation of the tile
         [SerializeField]
@@ -26,6 +28,25 @@ namespace PoC3.TileSystem
             if (_spriteRenderer != null && _tileEffect != null)
             {
                 _spriteRenderer.color = _tileEffect.TileColor;
+            }
+
+            if(textEffect != null)
+            {
+                switch(_tileEffect.Type)
+                {
+                    case EffectType.None:
+                        textEffect.text = "";
+                        break;
+                    case EffectType.Health:
+                        textEffect.text = "HEAL";
+                        break;
+                    case EffectType.Attack:
+                        textEffect.text = "ATK";
+                        break;
+                    case EffectType.Defense:
+                        textEffect.text = "DEF";
+                        break;
+                }
             }
         }
 
