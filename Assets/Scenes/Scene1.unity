@@ -3239,6 +3239,15 @@ MonoBehaviour:
   _maxLaunchForce: 20
   _minDragDistance: 0.9
   _maxPowerDragDistance: 10
+  _placementArea:
+    serializedVersion: 2
+    x: -4.3
+    y: -6.3
+    width: 0.6
+    height: 8.6
+  _ballCollisionLayer:
+    serializedVersion: 2
+    m_Bits: 64
   _trajectoryIndicator: {fileID: 70502672}
 --- !u!1 &1171741088
 GameObject:

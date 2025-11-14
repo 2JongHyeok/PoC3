@@ -168,6 +168,7 @@ namespace PoC3.ManagerSystem
             Ball newBall = Instantiate(_ballPrefab, _ballSpawnPoint.position, Quaternion.identity);
             newBall.gameObject.layer = LayerMask.NameToLayer("ReadyBall"); // Set layer to ReadyBall
             GameBoard.AddBall(newBall);
+            _ballLauncher.AttachBallToMouse(newBall);
         }
 
         /// <summary>

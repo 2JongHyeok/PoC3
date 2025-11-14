@@ -132,7 +132,7 @@ namespace PoC3.BallSystem
         private void OnCollisionEnter2D(Collision2D collision)
         {
             // If colliding with another ball, use default physics but increase levels
-            if (collision.gameObject.CompareTag("Ball"))
+            if (collision.gameObject.CompareTag("Ball") && collision.gameObject.layer == LayerMask.NameToLayer("Ball"))
             {
                 Ball otherBall = collision.gameObject.GetComponent<Ball>();
                 if (otherBall != null)
