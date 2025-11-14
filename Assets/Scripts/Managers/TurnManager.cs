@@ -124,6 +124,7 @@ namespace PoC3.ManagerSystem
             OnHealthAccumulated?.Invoke(_accumulatedHealth);
 
             _player.ResetDefense();
+            _player.ResetAttackDamage();
             ResetEnemyDefenseStats();
             ResetEnemyAttackStats();
 
@@ -239,6 +240,8 @@ namespace PoC3.ManagerSystem
             int totalDamage = _player.CurrentAttackDamage;
             Debug.Log($"[TurnManager] Applying total damage: {totalDamage}");
             enemy.TakeDamage(totalDamage);
+
+            _player.ResetAttackDamage();
 
             // 2. Clean up the board
             CleanupBoard();

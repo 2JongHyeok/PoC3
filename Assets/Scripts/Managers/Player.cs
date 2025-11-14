@@ -18,6 +18,7 @@ namespace PoC3.PlayerSystem
         private int _currentDefense = 0;
         [SerializeField]
         private int _currentAttackDamage = 10;
+        private int _baseAttackDamage;
 
         public event Action<int, int> OnHealthChanged; // currentHealth, maxHealth
         public event Action<int> OnDefenseChanged;
@@ -43,6 +44,7 @@ namespace PoC3.PlayerSystem
 
         private void Start()
         {
+            _baseAttackDamage = _currentAttackDamage;
             OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
             OnDefenseChanged?.Invoke(_currentDefense);
             OnAttackDamageChanged?.Invoke(_currentAttackDamage);
@@ -110,6 +112,12 @@ namespace PoC3.PlayerSystem
             if (amount <= 0) return;
             _currentAttackDamage += amount;
             Debug.Log($"[Player] Gained {amount} attack damage. Total attack: {_currentAttackDamage}");
+            OnAttackDamageChanged?.Invoke(_currentAttackDamage);
+        }
+
+        public void ResetAttackDamage()
+        {
+            _currentAttackDamage = _baseAttackDamage;
             OnAttackDamageChanged?.Invoke(_currentAttackDamage);
         }
 
