@@ -123,6 +123,9 @@ namespace PoC3.ManagerSystem
             OnDefenseAccumulated?.Invoke(_accumulatedDefense);
             OnHealthAccumulated?.Invoke(_accumulatedHealth);
 
+            CleanupBoard();
+            _currentBallsInHand = 0;
+            OnBallsInHandChanged?.Invoke(_currentBallsInHand);
             _player.ResetDefense();
             _player.ResetAttackDamage();
             ResetEnemyDefenseStats();
@@ -130,7 +133,6 @@ namespace PoC3.ManagerSystem
 
             _boardTimer?.ResetTimer();
             OnTurnStart?.Invoke();
-            OnBallsInHandChanged?.Invoke(_currentBallsInHand);
             EnsureBallChargeRoutine();
         }
 

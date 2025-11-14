@@ -28,7 +28,6 @@ namespace PoC3.Core
         {
             Debug.Log("[State] Entering PlayerTurnState");
             _turnManager.PrepareNewTurn();
-            _turnManager.PrepareNextBall(); // Automatically prepare one ball for the player
             _isWaitingForBallsToStop = false;
             _turnManager.OnBallLaunched += HandleBallLaunched;
             _turnManager.OnBoardTimerEnded += HandleBoardTimerEnded;
