@@ -14,6 +14,12 @@ namespace PoC3.BallSystem
         [SerializeField] private float _minDragDistance = 0.5f;
         [SerializeField] private float _maxPowerDragDistance = 10f;
 
+        [Header("Placement Parameters")]
+        [Tooltip("The area where the player can place the ball.")]
+        [SerializeField] private Rect _placementArea = new Rect(-4.3f, -6.3f, 0.6f, 8.6f);
+        [Tooltip("The layer mask to detect other balls when checking for valid placement.")]
+        [SerializeField] private LayerMask _ballCollisionLayer;
+
         [Header("Trajectory Indicator")]
         [SerializeField] private Transform _trajectoryIndicator; // Assign a simple Square sprite transform
 
@@ -25,8 +31,10 @@ namespace PoC3.BallSystem
 
         private Camera _mainCamera;
         private Ball _targetBall;
+        private Ball _currentBall;
         private Vector3 _startDragPosition;
         private bool _isAiming = false;
+        private bool _isPlacing = false; // Flag for the new placement phase
         private Color _originalBallColor;
 
         private void Awake()
@@ -38,10 +46,34 @@ namespace PoC3.BallSystem
             }
         }
 
+        /// <summary>
+        /// Starts the ball placement process. The ball will follow the mouse.
+        /// </summary>
+        public void AttachBallToMouse(Ball ball)
+        {
+            if (_isAiming || _isPlacing) return;
+
+            _isPlacing = true;
+            _targetBall = ball;
+            _currentBall = ball;
+            _targetBall.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic; // Disable physics while placing
+            
+            // Store original color to revert back to after placement
+            SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
+            if (ballSprite != null)
+            {
+                _originalBallColor = ballSprite.color;
+            }
+        }
+
         private void Update()
         {
+            if (_isPlacing)
+            {
+                HandleBallPlacement();
+            }
             // If we are aiming, handle aiming logic and release
-            if (_isAiming)
+            else if (_isAiming)
             {
                 if (Input.GetMouseButton(0))
                 {
@@ -52,41 +84,114 @@ namespace PoC3.BallSystem
                     LaunchBall();
                 }
             }
-            // If not aiming, check for input to start aiming
+            // If not aiming or placing, check for input to start aiming (original behavior)
             else
             {
                 if (Input.GetMouseButtonDown(0))
                 {
                     TryStartAiming();
                 }
+                else if(Input.GetMouseButtonDown(1))
+                {
+                    RetryBallPlacement();
+                }
             }
         }
 
-        private void TryStartAiming()
+        private void RetryBallPlacement()
         {
-            Vector3 mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            int layerMask = LayerMask.GetMask("ReadyBall");
-            RaycastHit2D hit = Physics2D.Raycast(new Vector2(mousePosition.x, mousePosition.y), Vector2.zero, 0f, layerMask);
+            Debug.Log("[BallLauncher] Ball placement cancelled.");
+            AttachBallToMouse(_currentBall);
+        }
 
-            if (hit.collider != null)
+        /// <summary>
+        /// Handles the logic for when the ball is following the mouse.
+        /// </summary>
+        private void HandleBallPlacement()
+        {
+            // Ball follows the mouse cursor, clamped within the placement area
+            Vector3 mouseWorldPos = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 placementPos = new Vector2(
+                Mathf.Clamp(mouseWorldPos.x, _placementArea.xMin, _placementArea.xMax),
+                Mathf.Clamp(mouseWorldPos.y, _placementArea.yMin, _placementArea.yMax)
+            );
+            _targetBall.transform.position = placementPos;
+
+            // Check if the current position is valid and provide visual feedback
+            bool canPlace = !IsBallAtPosition(placementPos);
+            _targetBall.GetComponent<SpriteRenderer>().color = canPlace ? Color.green : Color.red;
+
+            // If the player clicks, attempt to place the ball
+            if (Input.GetMouseButtonDown(0))
             {
-                Ball ball = hit.collider.GetComponent<Ball>();
-                // Only start aiming if the ball exists and has not been launched yet.
-                if (ball != null && !ball.IsLaunched)
+                if (canPlace)
                 {
-                    _isAiming = true;
-                    _targetBall = ball;
-                    _startDragPosition = mousePosition;
-                    if(_trajectoryIndicator) _trajectoryIndicator.gameObject.SetActive(true);
+                    // Placement is valid, finalize position and transition to aiming
+                    _isPlacing = false;
+                    _targetBall.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic; // Re-enable physics
+                    _targetBall.GetComponent<SpriteRenderer>().color = _originalBallColor; // Restore original color
                     
-                    // Store original color
-                    SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
-                    if (ballSprite != null)
-                    {
-                        _originalBallColor = ballSprite.color;
-                    }
-                    Debug.Log($"[BallLauncher] Started aiming with ball: {_targetBall.name}");
+                    Debug.Log($"[BallLauncher] Ball placed at {placementPos}.");
+                    
+                    // Call TryStartAiming with the ball that was just placed
+                    TryStartAiming(_targetBall);
                 }
+                else
+                {
+                    Debug.LogWarning("[BallLauncher] Cannot place ball here, another ball is in the way.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks if another ball is at the given position, ignoring the ball being placed.
+        /// </summary>
+        private bool IsBallAtPosition(Vector2 position)
+        {
+            // Use a small overlap circle to check for other colliders on the ball layer
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(position, 0.5f, _ballCollisionLayer);
+            foreach (var col in colliders)
+            {
+                if (col.gameObject != _targetBall.gameObject)
+                {
+                    return true; // Found another ball
+                }
+            }
+            return false;
+        }
+
+        private void TryStartAiming(Ball ballToAim = null)
+        {
+            Ball ball = ballToAim;
+
+            // If no ball was passed in, use the original raycast method to find one
+            if (ball == null)
+            {
+                Vector3 mousePosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                int layerMask = LayerMask.GetMask("ReadyBall");
+                RaycastHit2D hit = Physics2D.Raycast(new Vector2(mousePosition.x, mousePosition.y), Vector2.zero, 0f, layerMask);
+
+                if (hit.collider != null)
+                {
+                    ball = hit.collider.GetComponent<Ball>();
+                }
+            }
+
+            // Only start aiming if the ball exists and has not been launched yet.
+            if (ball != null && !ball.IsLaunched)
+            {
+                _isAiming = true;
+                _targetBall = ball;
+                _startDragPosition = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                if(_trajectoryIndicator) _trajectoryIndicator.gameObject.SetActive(true);
+                
+                // Store original color if it hasn't been stored already
+                SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
+                if (ballSprite != null)
+                {
+                    _originalBallColor = ballSprite.color;
+                }
+                Debug.Log($"[BallLauncher] Started aiming with ball: {_targetBall.name}");
             }
         }
 
