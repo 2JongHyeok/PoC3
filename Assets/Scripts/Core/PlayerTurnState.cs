@@ -35,6 +35,8 @@ namespace PoC3.Core
 
         public void OnUpdate()
         {
+            HandleSpacebarControl();
+            
             if (_isWaitingForBallsToStop)
             {
                 // If we are waiting for balls to stop, check their status
@@ -46,6 +48,7 @@ namespace PoC3.Core
                     {
                         _turnManager.PrepareNextBall();
                     }
+                    _turnManager.ResumeAfterPlayerAction();
                 }
             }
             else
@@ -91,6 +94,28 @@ namespace PoC3.Core
         private void HandleBoardTimerEnded()
         {
             _isWaitingForBallsToStop = false;
+        }
+
+        private void HandleSpacebarControl()
+        {
+            bool hasBallReady = _turnManager.PlayerHasReadyBall();
+            if (!hasBallReady)
+            {
+                if (!_turnManager.IsPlayerActionPaused)
+                {
+                    _turnManager.ResumeAfterPlayerAction();
+                }
+                return;
+            }
+
+            if (Input.GetKey(KeyCode.Space))
+            {
+                _turnManager.ResumeAfterPlayerAction();
+            }
+            else if (Input.GetKeyUp(KeyCode.Space))
+            {
+                _turnManager.PauseForPlayerAction();
+            }
         }
     }
 }

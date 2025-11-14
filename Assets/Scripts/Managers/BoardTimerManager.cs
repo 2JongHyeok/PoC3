@@ -53,6 +53,14 @@ namespace PoC3.ManagerSystem
             _isRunning = false;
         }
 
+        public void ResumeTimer()
+        {
+            if (_remainingTime > 0f)
+            {
+                _isRunning = true;
+            }
+        }
+
         public bool IsRunning => _isRunning;
         public float RemainingTime => _remainingTime;
 

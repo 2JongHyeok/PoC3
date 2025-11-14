@@ -39,6 +39,8 @@ namespace PoC3.ManagerSystem
         private int _currentBallsInHand;
         private float _ballChargeTimer;
         private bool _isChargingBall;
+        private bool _playerActionPause;
+        public bool IsPlayerActionPaused => _playerActionPause;
         
         // Bonus stats accumulated this turn
         private int _accumulatedAttack;
@@ -132,6 +134,7 @@ namespace PoC3.ManagerSystem
             ResetEnemyAttackStats();
 
             _boardTimer?.ResetTimer();
+            ResumeAfterPlayerAction();
             OnTurnStart?.Invoke();
             EnsureBallChargeRoutine();
         }
@@ -140,9 +143,9 @@ namespace PoC3.ManagerSystem
         /// Spawns a new ball at the spawn point if the player has balls in hand
         /// and no other ball is ready to be launched.
         /// </summary>
-        public void PrepareNextBall()
+        public void PrepareNextBall(bool ignoreLaunchCheck = false)
         {
-            if (!CanLaunch())
+            if (!ignoreLaunchCheck && !CanLaunch())
             {
                 return;
             }
@@ -274,7 +277,7 @@ namespace PoC3.ManagerSystem
 
         private void Update()
         {
-            if (!_isChargingBall || _ballChargeDuration <= 0f)
+            if (_playerActionPause || !_isChargingBall || _ballChargeDuration <= 0f)
             {
                 return;
             }
@@ -296,14 +299,18 @@ namespace PoC3.ManagerSystem
             OnBallsInHandChanged?.Invoke(_currentBallsInHand);
             Debug.Log("[TurnManager] Ball charge complete. Granted 1 ball.");
             StopChargeTimer();
-            if (CanLaunch())
-            {
-                PrepareNextBall();
-            }
+            PauseForPlayerAction();
+            PrepareNextBall(true);
         }
 
         private void EnsureBallChargeRoutine()
         {
+            if (_playerActionPause)
+            {
+                StopChargeTimer();
+                return;
+            }
+
             if (!CanLaunch())
             {
                 StopChargeTimer();
@@ -330,7 +337,7 @@ namespace PoC3.ManagerSystem
                 return;
             }
 
-            if (!CanLaunch())
+            if (_playerActionPause || !CanLaunch())
             {
                 return;
             }
@@ -347,7 +354,7 @@ namespace PoC3.ManagerSystem
                 return;
             }
 
-            if (!CanLaunch())
+            if (_playerActionPause || !CanLaunch())
             {
                 StopChargeTimer();
                 return;
@@ -386,8 +393,18 @@ namespace PoC3.ManagerSystem
             return CanLaunch();
         }
 
+        public bool PlayerHasReadyBall()
+        {
+            return GameBoard.ActiveBalls.Any(ball => ball != null && !ball.IsLaunched);
+        }
+
         private bool CanLaunch()
         {
+            if (_playerActionPause)
+            {
+                return true;
+            }
+
             if (_boardTimer == null)
             {
                 return true;
@@ -405,10 +422,43 @@ namespace PoC3.ManagerSystem
         {
             Debug.Log("[TurnManager] Board timer expired. Stopping all launches.");
             StopChargeTimer();
+            PauseForPlayerAction();
             ForceStopAllBalls();
             CalculateBoardBuffsForBothSides();
             CleanupBoard();
             OnBoardTimerEnded?.Invoke();
+        }
+
+        public void PauseForPlayerAction()
+        {
+            if (_playerActionPause)
+            {
+                return;
+            }
+
+            _playerActionPause = true;
+            StopChargeTimer();
+            _boardTimer?.StopTimer();
+            foreach (EnemyBallShooter shooter in FindObjectsByType<EnemyBallShooter>(FindObjectsSortMode.None))
+            {
+                shooter.PauseCharging();
+            }
+        }
+
+        public void ResumeAfterPlayerAction()
+        {
+            if (!_playerActionPause)
+            {
+                return;
+            }
+
+            _playerActionPause = false;
+            _boardTimer?.ResumeTimer();
+            EnsureBallChargeRoutine();
+            foreach (EnemyBallShooter shooter in FindObjectsByType<EnemyBallShooter>(FindObjectsSortMode.None))
+            {
+                shooter.ResumeCharging();
+            }
         }
 
         private void ForceStopAllBalls()

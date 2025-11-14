@@ -24,6 +24,7 @@ namespace PoC3.EnemySystem
         [SerializeField] private Color _gizmoColor = Color.magenta;
 
         private float _chargeTimer;
+        private bool _isPaused;
 
         private void Awake()
         {
@@ -53,10 +54,9 @@ namespace PoC3.EnemySystem
                 return;
             }
 
-            if (TurnManager.Instance != null && !TurnManager.Instance.IsBoardTimerRunning)
+            bool boardRunning = TurnManager.Instance == null || TurnManager.Instance.IsBoardTimerRunning;
+            if (_isPaused || !boardRunning)
             {
-                _chargeTimer = 0f;
-                UpdateChargeUI(0f);
                 return;
             }
 
@@ -125,6 +125,16 @@ namespace PoC3.EnemySystem
             {
                 _chargeSlider.value = progress;
             }
+        }
+
+        public void PauseCharging()
+        {
+            _isPaused = true;
+        }
+
+        public void ResumeCharging()
+        {
+            _isPaused = false;
         }
 
 #if UNITY_EDITOR
