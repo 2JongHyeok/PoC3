@@ -31,6 +31,7 @@ namespace PoC3.Core
             _isWaitingForBallsToStop = false;
             _turnManager.OnBallLaunched += HandleBallLaunched;
             _turnManager.OnBoardTimerEnded += HandleBoardTimerEnded;
+            _turnManager.GameBoard.BallStateChanged += HandleBallStateChanged;
         }
 
         public void OnUpdate()
@@ -83,12 +84,23 @@ namespace PoC3.Core
             Debug.Log("[State] Exiting PlayerTurnState");
             _turnManager.OnBallLaunched -= HandleBallLaunched;
             _turnManager.OnBoardTimerEnded -= HandleBoardTimerEnded;
+            _turnManager.GameBoard.BallStateChanged -= HandleBallStateChanged;
         }
 
         private void HandleBallLaunched(Ball ball)
         {
             Debug.Log($"[PlayerTurnState] Ball {ball.name} was launched. Waiting for it to stop.");
             _isWaitingForBallsToStop = true;
+        }
+
+        private void HandleBallStateChanged()
+        {
+            if (_isWaitingForBallsToStop && _turnManager.GameBoard.AreAllBallsStopped())
+            {
+                _isWaitingForBallsToStop = false;
+                _turnManager.ResumeAfterPlayerAction();
+                _turnManager.PrepareNextBall();
+            }
         }
 
         private void HandleBoardTimerEnded()

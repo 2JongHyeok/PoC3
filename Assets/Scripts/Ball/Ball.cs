@@ -50,6 +50,7 @@ namespace PoC3.BallSystem
         /// Event fired when the ball is used (e.g., after settling on tiles).
         /// </summary>
         public event Action<Ball> OnBallUsed;
+        public event Action<Ball> OnBallDestroyed;
 
         /// <summary>
         /// Tiles the ball is currently overlapping via trigger.
@@ -126,6 +127,7 @@ namespace PoC3.BallSystem
             Debug.Log($"[Ball] Ball {name} used.");
             _tilesInContact.Clear();
             OwnerEnemy = null;
+            OnBallDestroyed?.Invoke(this);
             Destroy(gameObject);
         }
 
@@ -249,7 +251,10 @@ namespace PoC3.BallSystem
             _healthMaterial.SetFloat("_FillAmount", fillAmount);
 
             if (_curHealth <= 0)
+            {
+                OnBallDestroyed?.Invoke(this);
                 Destroy(gameObject);
+            }
         }
 
         public void SetShineEffect(bool isOn)

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using PoC3.TileSystem;
 using PoC3.BallSystem;
@@ -33,6 +34,7 @@ namespace PoC3.BoardSystem
             {
                 _activeBalls.Add(ball);
                 ball.OnBallUsed += HandleBallUsed;
+                ball.OnBallDestroyed += HandleBallUsed;
             }
         }
 
@@ -44,9 +46,13 @@ namespace PoC3.BoardSystem
             if (_activeBalls.Contains(ball))
             {
                 ball.OnBallUsed -= HandleBallUsed;
+                ball.OnBallDestroyed -= HandleBallUsed;
                 _activeBalls.Remove(ball);
+                BallStateChanged?.Invoke();
             }
         }
+
+        public event Action BallStateChanged;
 
         /// <summary>
         /// Checks if all active balls on the board have stopped moving.
