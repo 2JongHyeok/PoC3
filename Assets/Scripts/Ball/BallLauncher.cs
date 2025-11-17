@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using PoC3.Progression;
+using UnityEngine.UI;
 
 namespace PoC3.BallSystem
 {
@@ -23,6 +24,7 @@ namespace PoC3.BallSystem
 
         [Header("Trajectory Indicator")]
         [SerializeField] private Transform _trajectoryIndicator; // Assign a simple Square sprite transform
+        [SerializeField] private UnityEngine.UI.Slider _powerSlider;
 
         /// <summary>
         /// Event fired when the player releases the mouse to launch the ball.
@@ -208,13 +210,7 @@ namespace PoC3.BallSystem
             float dragDistance = dragVector.magnitude;
             float power = CalculatePowerFromDrag(dragDistance);
 
-            _trajectoryIndicator.position = _targetBall.transform.position;
-            
-            float angle = Mathf.Atan2(launchDirection.y, launchDirection.x) * Mathf.Rad2Deg;
-            _trajectoryIndicator.rotation = Quaternion.Euler(0, 0, angle);
-
-            float visualLength = Mathf.Clamp(dragDistance, 0f, _maxPowerDragDistance);
-            _trajectoryIndicator.localScale = new Vector3(visualLength, _trajectoryIndicator.localScale.y, _trajectoryIndicator.localScale.z);
+            UpdateTrajectoryIndicator(launchDirection);
 
             // Visual feedback for launch readiness
             SpriteRenderer ballSprite = _targetBall.GetComponent<SpriteRenderer>();
@@ -250,6 +246,7 @@ namespace PoC3.BallSystem
             else
             {
                 Debug.Log("[BallLauncher] Drag distance too short. Launch cancelled.");
+                ResetPowerSlider();
             }
 
             // Reset ball color and aiming state
@@ -261,6 +258,7 @@ namespace PoC3.BallSystem
                     ballSprite.color = _originalBallColor;
                 }
             }
+            ResetPowerSlider();
             _isAiming = false;
             _targetBall = null;
             if(_trajectoryIndicator) _trajectoryIndicator.gameObject.SetActive(false);
@@ -270,11 +268,46 @@ namespace PoC3.BallSystem
         {
             if (_maxPowerDragDistance <= 0f)
             {
+                UpdatePowerSlider(0f);
                 return 0f;
             }
 
             float charge = Mathf.Clamp01(dragDistance / _maxPowerDragDistance);
-            return charge * GetEffectiveMaxLaunchForce();
+            float power = charge * GetEffectiveMaxLaunchForce();
+            UpdatePowerSlider(power);
+            return power;
+        }
+
+        private void UpdateTrajectoryIndicator(Vector2 launchDirection)
+        {
+            if (_trajectoryIndicator == null || _targetBall == null)
+            {
+                return;
+            }
+
+            _trajectoryIndicator.position = _targetBall.transform.position;
+            float angle = Mathf.Atan2(launchDirection.y, launchDirection.x) * Mathf.Rad2Deg;
+            _trajectoryIndicator.rotation = Quaternion.Euler(0, 0, angle);
+            _trajectoryIndicator.localScale = new Vector3(1f, _trajectoryIndicator.localScale.y, _trajectoryIndicator.localScale.z);
+        }
+
+        private void UpdatePowerSlider(float power)
+        {
+            if (_powerSlider == null)
+            {
+                return;
+            }
+
+            float maxForce = Mathf.Max(0.01f, GetEffectiveMaxLaunchForce());
+            _powerSlider.value = Mathf.Clamp01(power / maxForce);
+        }
+
+        private void ResetPowerSlider()
+        {
+            if (_powerSlider != null)
+            {
+                _powerSlider.value = 0f;
+            }
         }
 
         private float GetEffectiveMaxLaunchForce()
