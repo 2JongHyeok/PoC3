@@ -28,6 +28,10 @@ namespace PoC3.BallSystem
         public int maxHealth = 4;
         public TextMeshProUGUI textLevel;
         [SerializeField] private int _curHealth;
+        [Header("Appearance")]
+        [SerializeField] private Color _playerBallColor = Color.black;
+        [SerializeField] private Color _defaultEnemyBallColor = Color.blue;
+        private Color? _ownerColorOverride;
 
         public bool IsLaunched { get; private set; } = false;
         public Enemy OwnerEnemy { get; private set; }
@@ -83,8 +87,10 @@ namespace PoC3.BallSystem
 
         private void Start()
         {
-            SetShineEffect(ballType == BallType.Player);
-            SetPlayer(ballType == BallType.Player);
+            bool isPlayer = ballType == BallType.Player;
+            SetShineEffect(isPlayer);
+            ConfigureOwnerStats(isPlayer);
+            ApplyBallColor(GetOwnerColor(isPlayer));
         }
 
         private void FixedUpdate()
@@ -263,11 +269,45 @@ namespace PoC3.BallSystem
             _healthMaterial.SetFloat("_PulseToggle", toggle);
         }
 
-        public void SetPlayer(bool isPlayer)
+        private void ConfigureOwnerStats(bool isPlayer)
         {
-            levelRenderer.color = isPlayer ? Color.black : Color.blue;
             maxHealth = isPlayer ? 10 : 3;
             _curHealth = maxHealth;
+        }
+
+        private Color GetOwnerColor(bool isPlayer)
+        {
+            if (_ownerColorOverride.HasValue)
+            {
+                return _ownerColorOverride.Value;
+            }
+
+            return isPlayer ? _playerBallColor : _defaultEnemyBallColor;
+        }
+
+        private void ApplyBallColor(Color targetColor)
+        {
+            if (levelRenderer != null)
+            {
+                levelRenderer.color = targetColor;
+            }
+
+            if (healthRenderer != null)
+            {
+                healthRenderer.color = targetColor;
+            }
+        }
+
+        public void SetOwnerColor(Color ownerColor)
+        {
+            _ownerColorOverride = ownerColor;
+            ApplyBallColor(ownerColor);
+        }
+
+        public void ClearOwnerColorOverride()
+        {
+            _ownerColorOverride = null;
+            ApplyBallColor(GetOwnerColor(ballType == BallType.Player));
         }
     }
 }

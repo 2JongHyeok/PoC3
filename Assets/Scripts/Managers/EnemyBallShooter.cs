@@ -78,6 +78,10 @@ namespace PoC3.EnemySystem
             Ball newBall = Instantiate(_ballPrefab, _spawnPoint.position, Quaternion.identity);
             newBall.ballType = BallType.Enemy;
             newBall.AssignOwnerEnemy(_ownerEnemy);
+            if (_ownerEnemy != null)
+            {
+                newBall.SetOwnerColor(_ownerEnemy.BallColor);
+            }
             _gameBoard.AddBall(newBall);
 
             Vector2 direction = GetTargetDirection();

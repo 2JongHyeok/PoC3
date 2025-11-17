@@ -21,6 +21,7 @@ namespace PoC3.EnemySystem
 
         [Header("Visuals")]
         [SerializeField] private GameObject _highlightIndicator;
+        [SerializeField] private Color _ballColor = Color.red;
 
         public event Action<int, int> OnHealthChanged; // currentHealth, maxHealth
         public event Action<int> OnDefenseChanged;
@@ -32,6 +33,7 @@ namespace PoC3.EnemySystem
         public int CurrentDefense => _currentDefense;
         public int BaseAttackDamage => _baseAttackDamage;
         public int CurrentAttackDamage => _currentAttackDamage;
+        public Color BallColor => _ballColor;
 
         public void AddDefense(int amount)
         {
