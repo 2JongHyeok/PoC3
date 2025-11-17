@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using PoC3.TileSystem;
 using TMPro;
 using PoC3.EnemySystem;
+using PoC3.Progression;
 
 public enum BallType
 {
@@ -28,6 +29,9 @@ namespace PoC3.BallSystem
         public int maxHealth = 4;
         public TextMeshProUGUI textLevel;
         [SerializeField] private int _curHealth;
+        [Header("Health Settings")]
+        [SerializeField] private int _playerMaxHealth = 10;
+        [SerializeField] private int _enemyMaxHealth = 3;
         [Header("Appearance")]
         [SerializeField] private Color _playerBallColor = Color.black;
         [SerializeField] private Color _defaultEnemyBallColor = Color.blue;
@@ -271,7 +275,13 @@ namespace PoC3.BallSystem
 
         private void ConfigureOwnerStats(bool isPlayer)
         {
-            maxHealth = isPlayer ? 10 : 3;
+            int baseHealth = isPlayer ? _playerMaxHealth : _enemyMaxHealth;
+            if (isPlayer)
+            {
+                baseHealth += StageProgressData.PlayerBallHealthBonus * 2;
+            }
+
+            maxHealth = Mathf.Max(1, baseHealth);
             _curHealth = maxHealth;
         }
 

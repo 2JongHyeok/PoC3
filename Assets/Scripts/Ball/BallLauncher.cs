@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using PoC3.Progression;
 
 namespace PoC3.BallSystem
 {
@@ -273,7 +274,12 @@ namespace PoC3.BallSystem
             }
 
             float charge = Mathf.Clamp01(dragDistance / _maxPowerDragDistance);
-            return charge * _maxLaunchForce;
+            return charge * GetEffectiveMaxLaunchForce();
+        }
+
+        private float GetEffectiveMaxLaunchForce()
+        {
+            return _maxLaunchForce + StageProgressData.PlayerBallHealthBonus * 10f;
         }
     }
 }

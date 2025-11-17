@@ -141,6 +141,12 @@ namespace PoC3.EnemySystem
             _isPaused = false;
         }
 
+        public void ResetCharge()
+        {
+            _chargeTimer = 0f;
+            UpdateChargeUI(0f);
+        }
+
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {

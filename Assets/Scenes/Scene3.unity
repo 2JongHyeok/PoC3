@@ -1415,7 +1415,7 @@ MonoBehaviour:
   _spawnPoint: {fileID: 8621685438025316629}
   _chargeSlider: {fileID: 1678482231}
   _ownerEnemy: {fileID: 0}
-  _chargeDuration: 10
+  _chargeDuration: 7
   _launchForce: 10
   _gizmoColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!114 &460526229 stripped
@@ -3751,7 +3751,7 @@ MonoBehaviour:
   _spawnPoint: {fileID: 8621685438025316628}
   _chargeSlider: {fileID: 123315714}
   _ownerEnemy: {fileID: 0}
-  _chargeDuration: 12
+  _chargeDuration: 9
   _launchForce: 10
   _gizmoColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!114 &1160064980
@@ -7205,7 +7205,7 @@ MonoBehaviour:
   _spawnPoint: {fileID: 8621685438025316627}
   _chargeSlider: {fileID: 657882170}
   _ownerEnemy: {fileID: 0}
-  _chargeDuration: 13
+  _chargeDuration: 11
   _launchForce: 10
   _gizmoColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!114 &2134865113

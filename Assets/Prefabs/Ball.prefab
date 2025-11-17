@@ -359,6 +359,10 @@ MonoBehaviour:
   maxHealth: 4
   textLevel: {fileID: 2384586873532012139}
   _curHealth: 0
+  _playerMaxHealth: 4
+  _enemyMaxHealth: 4
+  _playerBallColor: {r: 0, g: 0, b: 0, a: 1}
+  _defaultEnemyBallColor: {r: 0, g: 0, b: 1, a: 1}
   levelRenderer: {fileID: 2350412174880893309}
   healthRenderer: {fileID: 7259074659673509827}
 --- !u!58 &7016610106192674410

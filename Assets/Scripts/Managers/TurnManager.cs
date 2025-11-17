@@ -427,6 +427,7 @@ namespace PoC3.ManagerSystem
             ForceStopAllBalls();
             CalculateBoardBuffsForBothSides();
             CleanupBoard();
+            ResetEnemyShootersCharge();
             OnBoardTimerEnded?.Invoke();
         }
 
@@ -597,6 +598,14 @@ namespace PoC3.ManagerSystem
                 }
 
                 applyAction(enemy, kvp.Value);
+            }
+        }
+
+        private void ResetEnemyShootersCharge()
+        {
+            foreach (EnemyBallShooter shooter in FindObjectsByType<EnemyBallShooter>(FindObjectsSortMode.None))
+            {
+                shooter.ResetCharge();
             }
         }
     }

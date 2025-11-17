@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using PoC3.ManagerSystem;
+using PoC3.Progression;
 using System.Linq;
 
 namespace PoC3.Level
@@ -31,6 +32,10 @@ namespace PoC3.Level
             }
 
             _currentSceneIndex = System.Array.IndexOf(_sceneOrder, SceneManager.GetActiveScene().name);
+            if (_currentSceneIndex <= 0)
+            {
+                StageProgressData.ResetProgress();
+            }
 
             if (_enemyManager != null)
             {
@@ -68,6 +73,7 @@ namespace PoC3.Level
         {
             if (!string.IsNullOrEmpty(_gameOverScene))
             {
+                StageProgressData.ResetProgress();
                 SceneManager.LoadScene(_gameOverScene);
             }
         }
@@ -78,12 +84,14 @@ namespace PoC3.Level
 
             if (_currentSceneIndex >= 0 && _currentSceneIndex < _sceneOrder.Length)
             {
+                StageProgressData.AdvanceStage();
                 SceneManager.LoadScene(_sceneOrder[_currentSceneIndex]);
                 return;
             }
 
             if (!string.IsNullOrEmpty(_victoryScene))
             {
+                StageProgressData.ResetProgress();
                 SceneManager.LoadScene(_victoryScene);
                 return;
             }
