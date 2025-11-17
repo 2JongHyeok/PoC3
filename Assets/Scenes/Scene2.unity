@@ -3614,7 +3614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxLaunchForce: 20
-  _minDragDistance: 0.9
+  _minDragDistance: 0.2
   _maxPowerDragDistance: 10
   _placementArea:
     serializedVersion: 2
@@ -3626,6 +3626,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   _trajectoryIndicator: {fileID: 70502672}
+  _trajectoryIndicatorWidth: 0.4
+  _trajectoryIndicatorLength: 3
   _powerSlider: {fileID: 1812201413}
 --- !u!1 &1171741088
 GameObject:

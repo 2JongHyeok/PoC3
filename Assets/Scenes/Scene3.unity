@@ -3852,6 +3852,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   _trajectoryIndicator: {fileID: 70502672}
+  _trajectoryIndicatorWidth: 0.4
+  _trajectoryIndicatorLength: 3
   _powerSlider: {fileID: 745667815}
 --- !u!1001 &1160064971
 PrefabInstance:

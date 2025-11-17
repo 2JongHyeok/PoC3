@@ -24,6 +24,8 @@ namespace PoC3.BallSystem
 
         [Header("Trajectory Indicator")]
         [SerializeField] private Transform _trajectoryIndicator; // Assign a simple Square sprite transform
+        [SerializeField] private float _trajectoryIndicatorWidth = 0.05f;
+        [SerializeField] private float _trajectoryIndicatorLength = 1f;
         [SerializeField] private UnityEngine.UI.Slider _powerSlider;
 
         /// <summary>
@@ -288,7 +290,7 @@ namespace PoC3.BallSystem
             _trajectoryIndicator.position = _targetBall.transform.position;
             float angle = Mathf.Atan2(launchDirection.y, launchDirection.x) * Mathf.Rad2Deg;
             _trajectoryIndicator.rotation = Quaternion.Euler(0, 0, angle);
-            _trajectoryIndicator.localScale = new Vector3(1f, _trajectoryIndicator.localScale.y, _trajectoryIndicator.localScale.z);
+            _trajectoryIndicator.localScale = new Vector3(_trajectoryIndicatorLength, _trajectoryIndicatorWidth, _trajectoryIndicator.localScale.z);
         }
 
         private void UpdatePowerSlider(float power)
