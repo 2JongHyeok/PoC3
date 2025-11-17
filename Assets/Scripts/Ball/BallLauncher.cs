@@ -13,7 +13,7 @@ namespace PoC3.BallSystem
     {
         [Header("Aiming Parameters")]
         [SerializeField] private float _maxLaunchForce = 10f;
-        [SerializeField] private float _minDragDistance = 0.5f;
+        [SerializeField] private float _minDragDistance = 0.02f;
         [SerializeField] private float _maxPowerDragDistance = 10f;
 
         [Header("Placement Parameters")]
